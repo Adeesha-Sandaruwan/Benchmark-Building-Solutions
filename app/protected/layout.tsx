@@ -3,14 +3,17 @@ import { redirect } from "next/navigation";
 import { LogoutButton } from "@/components/logout-button";
 import Link from "next/link";
 import { HardHat } from "lucide-react";
+import { connection } from "next/server";
 
-export default function ProtectedLayout({
+export default async function ProtectedLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  await connection();
   const supabase = await createClient();
-  const { data: { claims }, error } = await supabase.auth.getClaims();
+  const { data, error } = await supabase.auth.getClaims();
+  const claims = data?.claims;
   if (error || !claims) redirect("/auth/login");
   return (
     <main className="min-h-svh bg-[#f5f7fa] text-slate-900">

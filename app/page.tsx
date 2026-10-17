@@ -44,7 +44,7 @@ export default function Home() {
           <div className="absolute -bottom-5 right-4 hidden items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-lg sm:flex"><span className="flex size-9 items-center justify-center rounded-full bg-emerald-50 text-emerald-700"><ShieldCheck size={18} /></span><span><span className="block text-xs font-semibold text-slate-800">Your team, in sync</span><span className="block text-[11px] text-slate-500">Updates organized in one place</span></span></div>
         </div>
       </section>
-      <footer className="border-t border-slate-200 bg-white"><div className="mx-auto flex max-w-7xl flex-col gap-2 px-5 py-5 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between sm:px-8 lg:px-12"><span>© {new Date().getFullYear()} Benchmark Building Solutions</span><span>Project management for the people who build.</span></div></footer>
+      <footer className="border-t border-slate-200 bg-white"><div className="mx-auto flex max-w-7xl flex-col gap-2 px-5 py-5 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between sm:px-8 lg:px-12"><span>© 2026 Benchmark Building Solutions</span><span>Project management for the people who build.</span></div></footer>
     </main>
   );
 }

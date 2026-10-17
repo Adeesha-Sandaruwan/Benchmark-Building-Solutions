@@ -10,7 +10,8 @@ const metrics = [
 
 export default async function ProtectedPage() {
   const supabase = await createClient();
-  const { data: { claims } } = await supabase.auth.getClaims();
+  const { data } = await supabase.auth.getClaims();
+  const claims = data?.claims;
   const name = typeof claims?.user_metadata?.full_name === "string" ? claims.user_metadata.full_name.trim().split(/\s+/)[0] : null;
   const firstName = name || (typeof claims?.email === "string" ? claims.email.split("@")[0] : "there");
   return <div className="space-y-8">
