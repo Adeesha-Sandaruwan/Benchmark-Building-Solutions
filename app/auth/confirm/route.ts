@@ -5,18 +5,17 @@ import { type NextRequest } from "next/server";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
+  const code = searchParams.get("code");
   const token_hash = searchParams.get("token_hash");
   const type = searchParams.get("type") as EmailOtpType | null;
   const requestedNext = searchParams.get("next") ?? "/protected";
   const next = requestedNext.startsWith("/") && !requestedNext.startsWith("//") ? requestedNext : "/protected";
 
-  if (token_hash && type) {
+  if (code || (token_hash && type)) {
     const supabase = await createClient();
-
-    const { error } = await supabase.auth.verifyOtp({
-      type,
-      token_hash,
-    });
+    const { error } = code
+      ? await supabase.auth.exchangeCodeForSession(code)
+      : await supabase.auth.verifyOtp({ type: type!, token_hash: token_hash! });
     if (!error) {
       redirect(next);
     } else {
