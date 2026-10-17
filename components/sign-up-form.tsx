@@ -1,25 +1,12 @@
 "use client";
 
-import { cn } from "@/lib/utils";
-import { createClient } from "@/lib/supabase/client";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { createClient } from "@/lib/supabase/client";
 
-export function SignUpForm({
-  className,
-  ...props
-}: React.ComponentPropsWithoutRef<"div">) {
+export function SignUpForm() {
+  const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [repeatPassword, setRepeatPassword] = useState("");
@@ -27,94 +14,51 @@ export function SignUpForm({
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
-  const handleSignUp = async (e: React.SubmitEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const supabase = createClient();
-    setIsLoading(true);
+  async function handleSignUp(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (isLoading) return;
     setError(null);
-
+    if (password.length < 12) {
+      setError("Use at least 12 characters for your password.");
+      return;
+    }
     if (password !== repeatPassword) {
-      setError("Passwords do not match");
-      setIsLoading(false);
+      setError("The passwords don’t match. Please check them and try again.");
       return;
     }
 
+    setIsLoading(true);
     try {
-      const { error } = await supabase.auth.signUp({
-        email,
+      const supabase = createClient();
+      const { error: signUpError } = await supabase.auth.signUp({
+        email: email.trim(),
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/protected`,
+          data: { full_name: fullName.trim() },
+          emailRedirectTo: `${window.location.origin}/auth/confirm?next=/protected`,
         },
       });
-      if (error) throw error;
+      if (signUpError) throw signUpError;
       router.push("/auth/sign-up-success");
-    } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : "An error occurred");
+    } catch {
+      setError("We couldn’t create your account. Check the details and try again, or contact your workspace administrator.");
     } finally {
       setIsLoading(false);
     }
-  };
+  }
 
   return (
-    <div className={cn("flex flex-col gap-6", className)} {...props}>
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-2xl">Sign up</CardTitle>
-          <CardDescription>Create a new account</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSignUp}>
-            <div className="flex flex-col gap-6">
-              <div className="grid gap-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="m@example.com"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-              </div>
-              <div className="grid gap-2">
-                <div className="flex items-center">
-                  <Label htmlFor="password">Password</Label>
-                </div>
-                <Input
-                  id="password"
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-              </div>
-              <div className="grid gap-2">
-                <div className="flex items-center">
-                  <Label htmlFor="repeat-password">Repeat Password</Label>
-                </div>
-                <Input
-                  id="repeat-password"
-                  type="password"
-                  required
-                  value={repeatPassword}
-                  onChange={(e) => setRepeatPassword(e.target.value)}
-                />
-              </div>
-              {error && <p className="text-sm text-red-500">{error}</p>}
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? "Creating an account..." : "Sign up"}
-              </Button>
-            </div>
-            <div className="mt-4 text-center text-sm">
-              Already have an account?{" "}
-              <Link href="/auth/login" className="underline underline-offset-4">
-                Login
-              </Link>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+    <div>
+      <div className="mb-6"><p className="text-xs font-semibold uppercase tracking-[0.16em] text-amber-700">Create your account</p><h2 className="mt-2 text-3xl font-semibold tracking-tight text-[#152d4b]">Join Benchmark</h2><p className="mt-2 text-sm leading-6 text-slate-500">Use your work details to set up your project workspace access.</p></div>
+      <form onSubmit={handleSignUp} className="space-y-4">
+        <div><label htmlFor="full-name" className="mb-2 block text-sm font-medium text-slate-700">Full name</label><input id="full-name" name="name" type="text" autoComplete="name" minLength={2} maxLength={100} required value={fullName} onChange={(event) => setFullName(event.target.value)} placeholder="Your name" className="h-11 w-full rounded-lg border border-slate-300 bg-white px-3.5 text-sm outline-none transition placeholder:text-slate-400 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10" /></div>
+        <div><label htmlFor="email" className="mb-2 block text-sm font-medium text-slate-700">Work email</label><input id="email" name="email" type="email" autoComplete="email" inputMode="email" required value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@company.com" className="h-11 w-full rounded-lg border border-slate-300 bg-white px-3.5 text-sm outline-none transition placeholder:text-slate-400 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10" /></div>
+        <div><label htmlFor="password" className="mb-2 block text-sm font-medium text-slate-700">Password</label><input id="password" name="password" type="password" autoComplete="new-password" minLength={12} required value={password} onChange={(event) => setPassword(event.target.value)} className="h-11 w-full rounded-lg border border-slate-300 bg-white px-3.5 text-sm outline-none transition focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10" /><p className="mt-1.5 text-xs text-slate-500">At least 12 characters.</p></div>
+        <div><label htmlFor="repeat-password" className="mb-2 block text-sm font-medium text-slate-700">Confirm password</label><input id="repeat-password" name="repeat-password" type="password" autoComplete="new-password" minLength={12} required value={repeatPassword} onChange={(event) => setRepeatPassword(event.target.value)} className="h-11 w-full rounded-lg border border-slate-300 bg-white px-3.5 text-sm outline-none transition focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10" /></div>
+        {error && <p role="alert" className="rounded-lg border border-red-200 bg-red-50 px-3.5 py-3 text-sm leading-5 text-red-800">{error}</p>}
+        <button type="submit" disabled={isLoading} className="inline-flex h-12 w-full items-center justify-center rounded-lg bg-[#152d4b] px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-[#203e64] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-amber-500/25 disabled:cursor-not-allowed disabled:opacity-70">{isLoading ? "Creating your account…" : "Create account"}</button>
+      </form>
+      <p className="mt-5 text-center text-sm text-slate-500">Already have an account? <Link href="/auth/login" className="font-semibold text-amber-800 underline-offset-4 hover:underline">Sign in</Link></p>
     </div>
   );
 }
