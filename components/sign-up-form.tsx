@@ -42,7 +42,7 @@ export function SignUpForm() {
         },
       });
       if (signUpError) throw signUpError;
-      router.push("/auth/sign-up-success");
+      router.push(`/auth/sign-up-success?email=${encodeURIComponent(email.trim())}`);
     } catch {
       setError("We couldn’t create your account. Check the details and try again, or contact your workspace administrator.");
     } finally {
