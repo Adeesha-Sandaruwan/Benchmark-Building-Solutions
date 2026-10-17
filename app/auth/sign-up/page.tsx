@@ -1,11 +1,8 @@
 import { SignUpForm } from "@/components/sign-up-form";
+import { AuthShell } from "@/components/auth-shell";
 
 export default function Page() {
   return (
-    <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
-      <div className="w-full max-w-sm">
-        <SignUpForm />
-      </div>
-    </div>
+    <AuthShell eyebrow="JOIN YOUR PROJECT TEAM" title="A stronger project starts with a connected team." description="Set up your account to coordinate work and stay close to what is happening on site."><SignUpForm /></AuthShell>
   );
 }
