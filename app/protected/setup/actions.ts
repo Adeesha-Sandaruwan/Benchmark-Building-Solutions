@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { slugifyOrganizationName } from "@/lib/data/organizations";
 
-export async function createOrganizationAction(formData: FormData) {
+export async function createOrganizationAction(_previousState: { error: string | null }, formData: FormData) {
   const name = String(formData.get("name") ?? "").trim();
   const slug = slugifyOrganizationName(name);
   if (name.length < 2 || name.length > 160 || !slug) {
