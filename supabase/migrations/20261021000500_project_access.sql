@@ -18,6 +18,7 @@ create index if not exists project_memberships_project_role_idx
   on public.project_memberships (project_id, role, status);
 
 alter table public.project_memberships enable row level security;
+grant select, insert, update on public.project_memberships to authenticated;
 
 create or replace function public.can_access_project(target_project_id uuid)
 returns boolean

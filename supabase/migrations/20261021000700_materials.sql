@@ -48,6 +48,7 @@ create index if not exists project_materials_project_status_idx
 
 alter table public.materials enable row level security;
 alter table public.project_materials enable row level security;
+grant select, insert, update on public.materials, public.project_materials to authenticated;
 
 create policy "Organization members can read the materials catalog"
   on public.materials for select to authenticated

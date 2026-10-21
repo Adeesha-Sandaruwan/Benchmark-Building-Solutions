@@ -6,7 +6,10 @@ import { createClient } from "@/lib/supabase/server";
 import { getOrganizationOptions } from "@/lib/data/organizations";
 import { projectStatuses } from "@/lib/domain";
 
-export async function createProjectAction(_previousState: { error: string | null }, formData: FormData) {
+export async function createProjectAction(
+  _previousState: { error: string | null },
+  formData: FormData,
+): Promise<{ error: string | null }> {
   const name = String(formData.get("name") ?? "").trim();
   const code = String(formData.get("code") ?? "").trim().toUpperCase().replace(/[^A-Z0-9-]/g, "").slice(0, 24);
   const status = String(formData.get("status") ?? "planning");

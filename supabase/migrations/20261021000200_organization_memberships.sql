@@ -19,3 +19,4 @@ create index if not exists organization_memberships_org_role_idx
   on public.organization_memberships (organization_id, role, status);
 
 alter table public.organization_memberships enable row level security;
+grant select, insert, update on public.organization_memberships to authenticated;

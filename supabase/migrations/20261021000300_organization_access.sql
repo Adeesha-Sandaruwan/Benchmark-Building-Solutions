@@ -60,10 +60,28 @@ create policy "Members can read their organization memberships"
   on public.organization_memberships for select to authenticated
   using (public.is_organization_member(organization_id));
 
-create policy "Organization admins can manage memberships"
-  on public.organization_memberships for all to authenticated
-  using (public.has_organization_role(organization_id, array['owner', 'admin']))
-  with check (public.has_organization_role(organization_id, array['owner', 'admin']));
+create policy "Organization admins can add non-owner memberships"
+  on public.organization_memberships for insert to authenticated
+  with check (
+    public.has_organization_role(organization_id, array['owner', 'admin'])
+    and (role <> 'owner' or public.has_organization_role(organization_id, array['owner']))
+  );
+
+create policy "Organization admins can update memberships"
+  on public.organization_memberships for update to authenticated
+  using (
+    user_id <> (select auth.uid())
+    and (
+      public.has_organization_role(organization_id, array['owner'])
+      or (role <> 'owner' and public.has_organization_role(organization_id, array['admin']))
+    )
+  )
+  with check (
+    user_id <> (select auth.uid())
+    and
+    (public.has_organization_role(organization_id, array['owner', 'admin']))
+    and (role <> 'owner' or public.has_organization_role(organization_id, array['owner']))
+  );
 
 create or replace function public.create_organization(organization_name text, organization_slug text)
 returns uuid

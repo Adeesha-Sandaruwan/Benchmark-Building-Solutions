@@ -28,3 +28,4 @@ create index if not exists projects_manager_idx
   on public.projects (manager_id) where manager_id is not null;
 
 alter table public.projects enable row level security;
+grant select, insert, update on public.projects to authenticated;

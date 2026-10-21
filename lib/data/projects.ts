@@ -20,7 +20,7 @@ export async function getProjects(filters: ProjectFilters = {}) {
     .is("archived_at", null)
     .order("updated_at", { ascending: false });
 
-  const search = filters.search?.trim().replace(/[%_]/g, "").slice(0, 80);
+  const search = filters.search?.trim().replace(/[^a-zA-Z0-9\s-]/g, "").slice(0, 80);
   if (search) query = query.or(`name.ilike.%${search}%,code.ilike.%${search}%,client_name.ilike.%${search}%`);
   if (filters.status && projectStatuses.includes(filters.status as ProjectStatus)) {
     query = query.eq("status", filters.status);

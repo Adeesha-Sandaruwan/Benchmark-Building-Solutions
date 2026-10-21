@@ -25,6 +25,7 @@ create index if not exists workers_project_user_lookup_idx
   on public.workers (user_id) where user_id is not null;
 
 alter table public.workers enable row level security;
+grant select, insert, update on public.workers to authenticated;
 
 create policy "Organization members can read workers"
   on public.workers for select to authenticated

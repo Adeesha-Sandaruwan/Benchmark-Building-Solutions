@@ -29,6 +29,7 @@ create index if not exists expenses_org_date_idx
   on public.expenses (organization_id, expense_date desc);
 
 alter table public.expenses enable row level security;
+grant select, insert, update on public.expenses to authenticated;
 
 create policy "Project members can read expenses"
   on public.expenses for select to authenticated

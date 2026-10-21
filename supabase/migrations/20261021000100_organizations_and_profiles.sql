@@ -18,6 +18,16 @@ create table if not exists public.organizations (
 
 alter table public.profiles enable row level security;
 alter table public.organizations enable row level security;
+grant select, update on public.profiles to authenticated;
+grant select, update on public.organizations to authenticated;
+
+insert into public.profiles (id, full_name, email)
+select
+  users.id,
+  coalesce(users.raw_user_meta_data ->> 'full_name', ''),
+  coalesce(users.email, '')
+from auth.users users
+on conflict (id) do nothing;
 
 create policy "Users can read their own profile"
   on public.profiles for select
