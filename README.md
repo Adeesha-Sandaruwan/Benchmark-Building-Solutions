@@ -21,6 +21,12 @@ This branch establishes the application shell and Supabase authentication flows:
 5. Start the app: `npm run dev`
 6. Open [http://localhost:3000](http://localhost:3000).
 
+## Apply the construction data schema
+
+Before using organization setup or Projects, apply the SQL migration files in `supabase/migrations/` in timestamp order. In the Supabase dashboard, open **SQL Editor**, create a query for each file, paste its full contents, and run it. Apply each migration only once and wait for it to succeed before moving to the next file. These migrations create organization and profile records, membership roles, project access controls, workers, material requests, expenses, and the private receipt bucket. Coordinate with the Tasks and Progress Reports contributor before either branch applies additional shared database changes.
+
+The migration SQL is version-controlled in this repository. Keep subsequent schema changes in new migration files rather than editing a migration already applied to a shared database.
+
 Never place a Supabase `service_role` or secret key in a `NEXT_PUBLIC_` variable or commit it to Git. The local `.env.local` file is ignored by Git.
 
 ## Authentication routes
