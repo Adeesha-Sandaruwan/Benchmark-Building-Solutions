@@ -1,0 +1,15 @@
+"use client";
+
+import Link from "next/link";
+import { useActionState } from "react";
+import { createMaterialRequestAction } from "@/app/protected/materials/actions";
+
+type ProjectOption = { id: string; code: string; name: string; currency: string };
+type MaterialOption = { id: string; material_code: string; name: string; unit: string };
+const label = "block text-sm font-medium text-slate-700";
+const input = "mt-1.5 h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10";
+
+export function MaterialRequestForm({ projects, materials }: { projects: ProjectOption[]; materials: MaterialOption[] }) {
+  const [state, action, pending] = useActionState(createMaterialRequestAction, { error: null });
+  return <form action={action} className="space-y-6"><div className="grid gap-5 sm:grid-cols-2"><label className={label}>Project<select name="project_id" required defaultValue="" className={input}><option value="" disabled>Select project</option>{projects.map((project) => <option key={project.id} value={project.id}>{project.code} · {project.name}</option>)}</select></label><label className={label}>Catalog material<select name="material_id" required defaultValue="" className={input}><option value="" disabled>Select material</option>{materials.map((material) => <option key={material.id} value={material.id}>{material.material_code} · {material.name} ({material.unit})</option>)}</select></label><label className={label}>Quantity requested<input name="quantity_requested" type="number" min="0.001" max="99999999999" step="0.001" required placeholder="e.g. 25" className={input} /></label><label className={label}>Estimated unit cost<input name="unit_cost" type="number" min="0" max="999999999999" step="0.01" placeholder="Optional" className={input} /></label><label className={label}>Supplier<input name="supplier" maxLength={180} placeholder="Supplier (optional)" className={input} /></label><label className={label}>Needed by<input name="needed_by" type="date" className={input} /></label><label className={`${label} sm:col-span-2`}>Request notes<textarea name="notes" maxLength={2000} rows={4} placeholder="Specification, delivery instructions, or site context" className="mt-1.5 w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10" /></label></div>{state.error && <p role="alert" className="rounded-lg border border-red-200 bg-red-50 px-3.5 py-3 text-sm text-red-800">{state.error}</p>}<div className="flex flex-col-reverse gap-3 border-t border-slate-100 pt-5 sm:flex-row sm:justify-end"><Link href="/protected/materials/requests" className="inline-flex h-11 items-center justify-center rounded-lg border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50">Cancel</Link><button disabled={pending || !projects.length || !materials.length} className="h-11 rounded-lg bg-[#152d4b] px-5 text-sm font-semibold text-white hover:bg-[#203e64] disabled:opacity-60">{pending ? "Submitting…" : "Submit request"}</button></div></form>;
+}
