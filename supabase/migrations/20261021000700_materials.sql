@@ -48,7 +48,8 @@ create index if not exists project_materials_project_status_idx
 
 alter table public.materials enable row level security;
 alter table public.project_materials enable row level security;
-grant select, insert, update on public.materials, public.project_materials to authenticated;
+grant select, insert, update on public.materials to authenticated;
+grant select, insert on public.project_materials to authenticated;
 
 create policy "Organization members can read the materials catalog"
   on public.materials for select to authenticated
@@ -78,13 +79,4 @@ create policy "Site and project leads can request materials"
     and requested_by = (select auth.uid())
   );
 
-create policy "Project leaders can update material requests"
-  on public.project_materials for update to authenticated
-  using (
-    public.can_access_project(project_id)
-    and public.has_organization_role(organization_id, array['owner', 'admin', 'project_manager', 'supervisor'])
-  )
-  with check (
-    public.can_access_project(project_id)
-    and public.has_organization_role(organization_id, array['owner', 'admin', 'project_manager', 'supervisor'])
-  );
+drop policy if exists "Project leaders can update material requests" on public.project_materials;
