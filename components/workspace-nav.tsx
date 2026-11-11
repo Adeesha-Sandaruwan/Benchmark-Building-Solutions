@@ -1,11 +1,12 @@
 import Link from "next/link";
-import { Boxes, BriefcaseBusiness, Users, Wallet } from "lucide-react";
+import { Boxes, BriefcaseBusiness, Users, Wallet, UserCog } from "lucide-react";
 
 const modules = [
   { href: "/protected/projects", label: "Projects", icon: BriefcaseBusiness },
   { href: "/protected/workers", label: "Workers", icon: Users },
   { href: "/protected/materials", label: "Materials", icon: Boxes },
   { href: "/protected/expenses", label: "Expenses", icon: Wallet },
+  { href: "/protected/team", label: "Team", icon: UserCog },
 ];
 
 export function WorkspaceNav() {

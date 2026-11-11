@@ -39,7 +39,7 @@ export async function createWorkerAction(_previousState: { error: string | null 
   const validation = validateWorker(formData);
   if (validation.error) return { error: validation.error };
   const context = await getManagerContext();
-  if ("error" in context) return context;
+  if (context.error) return { error: context.error };
   const { error } = await context.supabase.from("workers").insert({ ...validation.value, organization_id: context.organization.id, created_by: context.userId });
   if (error?.code === "23505") return { error: "That worker code is already in use." };
   if (error) return { error: "We couldn’t save this worker. Check the details and try again." };
@@ -53,7 +53,7 @@ export async function updateWorkerAction(_previousState: { error: string | null 
   const validation = validateWorker(formData);
   if (validation.error) return { error: validation.error };
   const context = await getManagerContext();
-  if ("error" in context) return context;
+  if (context.error) return { error: context.error };
   const { data, error } = await context.supabase.from("workers").update({ ...validation.value, updated_at: new Date().toISOString() }).eq("id", workerId).eq("organization_id", context.organization.id).select("id").maybeSingle();
   if (error?.code === "23505") return { error: "That worker code is already in use." };
   if (error || !data) return { error: "We couldn’t update this worker. Check your access and try again." };
@@ -64,7 +64,7 @@ export async function updateWorkerAction(_previousState: { error: string | null 
 export async function archiveWorkerAction(workerId: string): Promise<{ error: string | null }> {
   if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(workerId)) return { error: "Worker not found." };
   const context = await getManagerContext();
-  if ("error" in context) return context;
+  if (context.error) return { error: context.error };
   const { data, error } = await context.supabase.from("workers").update({ archived_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq("id", workerId).eq("organization_id", context.organization.id).is("archived_at", null).select("id").maybeSingle();
   if (error || !data) return { error: "The worker could not be archived. Refresh and try again." };
   revalidatePath("/protected/workers");

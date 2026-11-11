@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, CalendarDays, CircleDollarSign, MapPin, UserRound } from "lucide-react";
+import { ArrowLeft, CalendarDays, CircleDollarSign, MapPin } from "lucide-react";
 import { getProjectById } from "@/lib/data/projects";
 import { projectStatusLabels } from "@/lib/domain";
 import { ArchiveProjectButton } from "@/components/archive-project-button";

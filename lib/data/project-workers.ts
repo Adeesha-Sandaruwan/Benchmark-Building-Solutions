@@ -9,5 +9,9 @@ export async function getProjectWorkerAssignments(projectId: string) {
     .is("removed_at", null)
     .order("assigned_at", { ascending: false });
   if (error) return { assignments: [], error: "Project team could not be loaded." };
-  return { assignments: data ?? [], error: null };
+  const assignments = (data ?? []).flatMap((assignment) => {
+    const worker = Array.isArray(assignment.workers) ? assignment.workers[0] : assignment.workers;
+    return worker ? [{ ...assignment, workers: worker }] : [];
+  });
+  return { assignments, error: null };
 }
