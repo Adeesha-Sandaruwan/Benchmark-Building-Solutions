@@ -4,7 +4,7 @@ Responsive construction project management workspace built with Next.js, TypeScr
 
 ## Current milestone
 
-This branch establishes the application shell and Supabase authentication flows: account registration with email confirmation, sign in, sign out, password recovery, password update, and a protected workspace dashboard. Construction data modules are planned for later milestones.
+The application includes Supabase authentication, organization onboarding and invitations, a responsive project register with create/edit/archive and workforce assignment, worker directory and profiles, a materials catalog and request-to-usage workflow, and project expense submission, private receipts, and approval review. Tasks and Progress Reports are developed in a separate team workstream.
 
 ## Requirements
 
@@ -23,9 +23,21 @@ This branch establishes the application shell and Supabase authentication flows:
 
 ## Apply the construction data schema
 
-Before using organization setup or Projects, apply the SQL migration files in `supabase/migrations/` in timestamp order. In the Supabase dashboard, open **SQL Editor**, create a query for each file, paste its full contents, and run it. Apply each migration only once and wait for it to succeed before moving to the next file. These migrations create organization and profile records, membership roles, project access controls, workers, material requests, expenses, and the private receipt bucket. Coordinate with the Tasks and Progress Reports contributor before either branch applies additional shared database changes.
+Before using the construction modules, apply every unapplied SQL migration file in `supabase/migrations/` in timestamp order. In the Supabase dashboard, open **SQL Editor**, create a query for each file, paste its full contents, and run it. If the original eight migrations were already applied, continue from the first migration that has not been run; never run a migration twice. Wait for each file to succeed before moving to the next. The later migrations add workforce assignments, atomic material receiving/usage, expense review rules, and organization invitations. Coordinate schema changes with the Tasks and Progress Reports contributor because those modules reference the shared organization and project IDs.
 
 The migration SQL is version-controlled in this repository. Keep subsequent schema changes in new migration files rather than editing a migration already applied to a shared database.
+
+## Workspace invitations
+
+Workspace owners and admins can create seven-day invitation codes at `/protected/team`. The app does not send email; share the code through your team’s normal channel. Invitees create and verify an account, sign in, then enter the code at `/protected/join`. Invitations can optionally be restricted to an email address.
+
+## Construction modules
+
+- **Projects:** create, search, filter, edit, archive, and review project details.
+- **Workers:** maintain profiles and assign or remove workers from project teams.
+- **Materials:** maintain a catalog, request materials for active projects, approve and order requests, record partial/full deliveries, and track usage.
+- **Expenses:** submit categorized project expenses, attach private receipts, and approve or reject submissions with a review note. A user cannot approve their own expense.
+- **Tasks and Progress Reports:** owned by the separate team workstream; use `docs/team-data-contract.md` for shared keys and access helpers.
 
 Never place a Supabase `service_role` or secret key in a `NEXT_PUBLIC_` variable or commit it to Git. The local `.env.local` file is ignored by Git.
 
