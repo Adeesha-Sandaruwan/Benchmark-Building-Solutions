@@ -47,3 +47,29 @@ export async function updateMaterialAction(_state: { error: string | null }, for
   revalidatePath("/protected/materials");
   redirect("/protected/materials");
 }
+
+export async function createMaterialRequestAction(_state: { error: string | null }, formData: FormData): Promise<{ error: string | null }> {
+  const projectId = text(formData, "project_id");
+  const materialId = text(formData, "material_id");
+  const quantity = Number(text(formData, "quantity_requested"));
+  const unitCostText = text(formData, "unit_cost");
+  const unitCost = unitCostText ? Number(unitCostText) : null;
+  const supplier = text(formData, "supplier");
+  const neededBy = text(formData, "needed_by") || null;
+  const notes = text(formData, "notes");
+  const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (!uuidPattern.test(projectId) || !uuidPattern.test(materialId)) return { error: "Choose a valid project and catalog material." };
+  if (!Number.isFinite(quantity) || quantity <= 0 || quantity > 99999999999) return { error: "Enter a quantity greater than zero." };
+  if (unitCost !== null && (!Number.isFinite(unitCost) || unitCost < 0 || unitCost > 999999999999)) return { error: "Enter a valid non-negative unit cost." };
+  if (supplier.length > 180 || notes.length > 2000) return { error: "Supplier or notes are too long." };
+  const organization = (await getOrganizationOptions())[0];
+  if (!organization || !["owner", "admin", "project_manager", "supervisor", "worker"].includes(organization.role)) return { error: "You don’t have permission to request materials." };
+  const supabase = await createClient();
+  const { data: claims, error: claimsError } = await supabase.auth.getClaims();
+  if (claimsError || !claims?.claims?.sub) return { error: "Your session has expired. Sign in again." };
+  const { error } = await supabase.from("project_materials").insert({ organization_id: organization.id, project_id: projectId, material_id: materialId, quantity_requested: quantity, unit_cost: unitCost, supplier: supplier || null, needed_by: neededBy, notes, requested_by: claims.claims.sub });
+  if (error) return { error: "The material request could not be saved. Confirm your project access and try again." };
+  revalidatePath("/protected/materials");
+  revalidatePath(`/protected/projects/${projectId}`);
+  redirect("/protected/materials/requests");
+}
