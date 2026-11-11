@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, CalendarDays, CircleDollarSign, MapPin, UserRound } from "lucide-react";
 import { getProjectById } from "@/lib/data/projects";
 import { projectStatusLabels } from "@/lib/domain";
+import { ArchiveProjectButton } from "@/components/archive-project-button";
 
 const statusStyles: Record<string, string> = {
   planning: "bg-slate-100 text-slate-700",
@@ -21,7 +22,7 @@ export default async function ProjectDetailsPage({ params }: { params: Promise<{
   const project = await getProjectById(projectId);
   if (!project) notFound();
   return <div className="mx-auto max-w-5xl space-y-5"><Link href="/protected/projects" className="inline-flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-slate-800"><ArrowLeft size={16} /> Projects</Link>
-    <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-8"><div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between"><div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">{project.code}</p><h1 className="mt-1 text-3xl font-semibold tracking-tight text-[#152d4b]">{project.name}</h1><p className="mt-2 text-sm text-slate-500">{project.client_name || "Client not specified"}</p></div><span className={`w-fit rounded-full px-3 py-1.5 text-xs font-semibold ${statusStyles[project.status]}`}>{projectStatusLabels[project.status as keyof typeof projectStatusLabels]}</span></div>
+    <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-8"><div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between"><div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">{project.code}</p><h1 className="mt-1 text-3xl font-semibold tracking-tight text-[#152d4b]">{project.name}</h1><p className="mt-2 text-sm text-slate-500">{project.client_name || "Client not specified"}</p></div><div className="flex flex-wrap items-center gap-3"><span className={`w-fit rounded-full px-3 py-1.5 text-xs font-semibold ${statusStyles[project.status]}`}>{projectStatusLabels[project.status as keyof typeof projectStatusLabels]}</span><Link href={`/protected/projects/${projectId}/edit`} className="inline-flex min-h-10 items-center justify-center rounded-lg border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50">Edit project</Link><ArchiveProjectButton projectId={projectId} /></div></div>
       {project.description && <p className="mt-6 max-w-3xl whitespace-pre-wrap text-sm leading-6 text-slate-600">{project.description}</p>}
       <div className="mt-7 grid gap-3 border-t border-slate-100 pt-6 sm:grid-cols-2 lg:grid-cols-4"><Info icon={MapPin} label="Location" value={project.location || "Not set"} /><Info icon={CalendarDays} label="Start date" value={displayDate(project.start_date)} /><Info icon={CalendarDays} label="Target completion" value={displayDate(project.target_end_date)} /><Info icon={CircleDollarSign} label="Budget" value={project.budget == null ? "Not set" : `${project.currency} ${Number(project.budget).toLocaleString()}`} /></div>
     </section>

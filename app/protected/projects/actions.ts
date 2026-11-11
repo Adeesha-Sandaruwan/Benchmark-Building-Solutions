@@ -98,3 +98,15 @@ export async function updateProjectAction(
   revalidatePath("/protected", "layout");
   redirect(`/protected/projects/${projectId}`);
 }
+
+export async function archiveProjectAction(projectId: string): Promise<{ error: string | null }> {
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(projectId)) return { error: "Project not found." };
+  const organizations = await getOrganizationOptions();
+  const organization = organizations[0];
+  if (!organization || !["owner", "admin", "project_manager"].includes(organization.role)) return { error: "You don’t have permission to archive this project." };
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("projects").update({ archived_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq("id", projectId).eq("organization_id", organization.id).is("archived_at", null).select("id").maybeSingle();
+  if (error || !data) return { error: "The project could not be archived. Refresh and try again." };
+  revalidatePath("/protected", "layout");
+  redirect("/protected/projects");
+}
