@@ -20,6 +20,27 @@ export const projectStatuses = [
 
 export type ProjectStatus = (typeof projectStatuses)[number];
 
+export const workerStatuses = ["active", "on_leave", "inactive"] as const;
+export type WorkerStatus = (typeof workerStatuses)[number];
+
+export interface WorkerRecord {
+  id: string;
+  organization_id: string;
+  user_id: string | null;
+  worker_code: string;
+  full_name: string;
+  email: string | null;
+  phone: string | null;
+  trade: string;
+  employment_status: WorkerStatus;
+  start_date: string | null;
+  notes: string;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+  archived_at: string | null;
+}
+
 export const projectStatusLabels: Record<ProjectStatus, string> = {
   planning: "Planning",
   active: "Active",
