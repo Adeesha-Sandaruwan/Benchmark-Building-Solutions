@@ -73,3 +73,43 @@ export async function createMaterialRequestAction(_state: { error: string | null
   revalidatePath(`/protected/projects/${projectId}`);
   redirect("/protected/materials/requests");
 }
+
+export type MaterialActionState = { error: string | null; success: string | null };
+const validUuid = (value: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
+
+export async function transitionMaterialRequestAction(_state: MaterialActionState, formData: FormData): Promise<MaterialActionState> {
+  const requestId = text(formData, "request_id");
+  const projectId = text(formData, "project_id");
+  const nextStatus = text(formData, "next_status");
+  if (!validUuid(requestId) || !validUuid(projectId) || !["approved", "ordered", "cancelled"].includes(nextStatus)) return { error: "Invalid material request action.", success: null };
+  const organization = (await getOrganizationOptions())[0];
+  if (!organization || !["owner", "admin", "project_manager", "supervisor"].includes(organization.role)) return { error: "You don’t have permission to update material requests.", success: null };
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("transition_material_request", { request_id: requestId, next_status: nextStatus });
+  if (error) return { error: "That status change isn’t available. Refresh the request and try again.", success: null };
+  revalidatePath("/protected/materials/requests");
+  revalidatePath(`/protected/projects/${projectId}`);
+  return { error: null, success: "Material request status updated." };
+}
+
+async function recordMaterialQuantity(_state: MaterialActionState, formData: FormData, operation: "receipt" | "usage"): Promise<MaterialActionState> {
+  const requestId = text(formData, "request_id");
+  const projectId = text(formData, "project_id");
+  const quantity = Number(text(formData, "quantity"));
+  if (!validUuid(requestId) || !validUuid(projectId)) return { error: "Material request not found.", success: null };
+  if (!Number.isFinite(quantity) || quantity <= 0 || quantity > 99999999999) return { error: "Enter a quantity greater than zero.", success: null };
+  const organization = (await getOrganizationOptions())[0];
+  const allowed = operation === "receipt" ? ["owner", "admin", "project_manager", "supervisor"] : ["owner", "admin", "project_manager", "supervisor", "worker"];
+  if (!organization || !allowed.includes(organization.role)) return { error: "You don’t have permission to update this material record.", success: null };
+  const supabase = await createClient();
+  const { error } = operation === "receipt"
+    ? await supabase.rpc("record_material_receipt", { request_id: requestId, received_quantity: quantity })
+    : await supabase.rpc("record_material_usage", { request_id: requestId, used_quantity: quantity });
+  if (error) return { error: operation === "receipt" ? "Receipt couldn’t be recorded. Confirm the request is ordered and the quantity is valid." : "Usage couldn’t be recorded. It cannot exceed the quantity received.", success: null };
+  revalidatePath("/protected/materials/requests");
+  revalidatePath(`/protected/projects/${projectId}`);
+  return { error: null, success: operation === "receipt" ? "Delivery quantity recorded." : "Material usage recorded." };
+}
+
+export async function recordMaterialReceiptAction(state: MaterialActionState, formData: FormData) { return recordMaterialQuantity(state, formData, "receipt"); }
+export async function recordMaterialUsageAction(state: MaterialActionState, formData: FormData) { return recordMaterialQuantity(state, formData, "usage"); }
