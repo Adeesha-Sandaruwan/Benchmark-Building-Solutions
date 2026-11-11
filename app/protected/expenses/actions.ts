@@ -9,6 +9,7 @@ const submitRoles = ["owner", "admin", "project_manager", "supervisor", "finance
 const reviewRoles = ["owner", "admin", "project_manager", "finance"];
 const receiptTypes = new Set(["image/jpeg", "image/png", "image/webp", "application/pdf"]);
 const maxReceiptSize = 8 * 1024 * 1024;
+const expenseCategories = ["Materials", "Equipment", "Fuel and transport", "Labor", "Permits and fees", "Site services", "Travel", "Other"];
 function value(data: FormData, key: string) { return String(data.get(key) ?? "").trim(); }
 
 export async function createExpenseAction(_state: { error: string | null }, formData: FormData): Promise<{ error: string | null }> {
@@ -22,10 +23,11 @@ export async function createExpenseAction(_state: { error: string | null }, form
   const receipt = formData.get("receipt");
   const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
   if (!uuid.test(projectId)) return { error: "Choose a valid project." };
-  if (!category || category.length > 80 || description.length < 2 || description.length > 2000 || merchant.length > 180) return { error: "Check the expense category, description, and merchant fields." };
+  if (!expenseCategories.includes(category) || description.length < 2 || description.length > 2000 || merchant.length > 180) return { error: "Check the expense category, description, and merchant fields." };
   if (!Number.isFinite(amount) || amount <= 0 || amount > 999999999999.99) return { error: "Enter an amount greater than zero." };
   if (!/^[A-Z]{3}$/.test(currency)) return { error: "Choose a valid currency." };
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(expenseDate) || Number.isNaN(Date.parse(`${expenseDate}T00:00:00`))) return { error: "Choose a valid expense date." };
+  const parsedExpenseDate = new Date(`${expenseDate}T00:00:00.000Z`);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(expenseDate) || Number.isNaN(parsedExpenseDate.getTime()) || parsedExpenseDate.toISOString().slice(0, 10) !== expenseDate) return { error: "Choose a valid expense date." };
   const file = receipt instanceof File && receipt.size > 0 ? receipt : null;
   if (file && (!receiptTypes.has(file.type) || file.size > maxReceiptSize)) return { error: "Receipt must be a JPG, PNG, WebP, or PDF smaller than 8 MB." };
 

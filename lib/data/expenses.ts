@@ -12,10 +12,5 @@ export async function getExpenses(filters: { status?: string; q?: string } = {})
   if (search) query = query.or(`category.ilike.%${search}%,merchant.ilike.%${search}%,description.ilike.%${search}%`);
   const { data, error } = await query;
   if (error || !data) return { organization, expenses: [], error: "Expenses could not be loaded. Refresh and try again." };
-  const expenses = await Promise.all(data.map(async (expense) => {
-    if (!expense.receipt_path) return { ...expense, receipt_url: null };
-    const { data: signed } = await supabase.storage.from("expense-receipts").createSignedUrl(expense.receipt_path, 600);
-    return { ...expense, receipt_url: signed?.signedUrl ?? null };
-  }));
-  return { organization, expenses, error: null };
+  return { organization, expenses: data, error: null };
 }
