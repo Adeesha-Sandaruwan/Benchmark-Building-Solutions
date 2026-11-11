@@ -40,6 +40,9 @@ export interface MaterialRecord {
   archived_at: string | null;
 }
 
+export const expenseStatuses = ["submitted", "approved", "rejected"] as const;
+export type ExpenseStatus = (typeof expenseStatuses)[number];
+
 export interface WorkerRecord {
   id: string;
   organization_id: string;
