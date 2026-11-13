@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Boxes, BriefcaseBusiness, Users, Wallet, UserCog } from "lucide-react";
+import { Boxes, BriefcaseBusiness, Users, Wallet, UserCog, ClipboardList, } from "lucide-react";
 
 const modules = [
   { href: "/protected/projects", label: "Projects", icon: BriefcaseBusiness },
@@ -7,6 +7,11 @@ const modules = [
   { href: "/protected/materials", label: "Materials", icon: Boxes },
   { href: "/protected/expenses", label: "Expenses", icon: Wallet },
   { href: "/protected/team", label: "Team", icon: UserCog },
+  {
+    href: "/protected/tasks",
+    label: "Tasks",
+    icon: ClipboardList,
+  },
 ];
 
 export function WorkspaceNav() {
