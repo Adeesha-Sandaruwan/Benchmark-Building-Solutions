@@ -1,8 +1,18 @@
-import { Activity, ArrowUpRight, BriefcaseBusiness, Boxes, CalendarDays, Plus, Users, Wallet } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import {
+  ArrowRight,
+  ArrowUpRight,
+  Boxes,
+  BriefcaseBusiness,
+  ClipboardList,
+  Plus,
+  UsersRound,
+  WalletCards,
+} from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getOrganizationOptions } from "@/lib/data/organizations";
-import { redirect } from "next/navigation";
-import Link from "next/link";
 
 export default async function ProtectedPage() {
   const organizations = await getOrganizationOptions();
@@ -20,18 +30,37 @@ export default async function ProtectedPage() {
     supabase.from("expenses").select("id", { count: "exact", head: true }).eq("organization_id", organization.id).eq("status", "submitted"),
   ]);
   const metrics = [
-    { icon: BriefcaseBusiness, label: "Active projects", value: projectsResult.count ?? 0, note: "Not archived" },
-    { icon: Users, label: "Active workers", value: workersResult.count ?? 0, note: "In your directory" },
-    { icon: Boxes, label: "Open material requests", value: materialsResult.count ?? 0, note: "Awaiting delivery" },
-    { icon: Wallet, label: "Expenses to review", value: expensesResult.count ?? 0, note: "Awaiting approval" },
+    { icon: BriefcaseBusiness, label: "Active projects", value: projectsResult.count ?? 0, detail: "Open project portfolio", href: "/protected/projects", tone: "green" },
+    { icon: UsersRound, label: "Active workers", value: workersResult.count ?? 0, detail: "People in your directory", href: "/protected/workers", tone: "blue" },
+    { icon: Boxes, label: "Material requests", value: materialsResult.count ?? 0, detail: "Moving through procurement", href: "/protected/materials/requests", tone: "amber" },
+    { icon: WalletCards, label: "Expenses to review", value: expensesResult.count ?? 0, detail: "Awaiting a decision", href: "/protected/expenses", tone: "violet" },
   ];
-  return <div className="space-y-8">
-    <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-sm font-medium text-amber-700">{organization.name} · Workspace overview</p><h1 className="mt-1 text-3xl font-semibold tracking-tight text-[#152d4b]">Good morning, {firstName}</h1><p className="mt-2 text-sm text-slate-500">Here’s what’s happening across your construction projects.</p></div><Link href="/protected/projects/new" className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-[#152d4b] px-4 text-sm font-semibold text-white hover:bg-[#203e64]"><Plus size={16} /> New project</Link></div>
-    <section aria-label="Workspace metrics" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">{metrics.map(({ icon: Icon, label, value, note }) => <article key={label} className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"><div className="flex items-center justify-between"><span className="text-sm font-medium text-slate-500">{label}</span><span className="flex size-9 items-center justify-center rounded-lg bg-amber-50 text-amber-800"><Icon size={18} /></span></div><p className="mt-4 text-3xl font-semibold tracking-tight text-[#152d4b]">{value}</p><p className="mt-1 text-xs text-slate-400">{note}</p></article>)}</section>
-    <div className="grid gap-5 xl:grid-cols-[1.35fr_.65fr]">
-      <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm"><div className="flex items-center justify-between border-b border-slate-100 px-5 py-4"><div><h2 className="font-semibold text-[#152d4b]">Project portfolio</h2><p className="mt-1 text-xs text-slate-500">Go directly to your project register.</p></div><BriefcaseBusiness size={18} className="text-slate-400" /></div><div className="grid gap-3 p-5 sm:grid-cols-2">{[["Projects", "/protected/projects", BriefcaseBusiness], ["Workers", "/protected/workers", Users], ["Materials", "/protected/materials", Boxes], ["Expenses", "/protected/expenses", Wallet]].map(([label, href, Icon]) => { const ItemIcon = Icon as typeof BriefcaseBusiness; return <Link key={String(href)} href={String(href)} className="group flex min-h-20 items-center gap-3 rounded-xl border border-slate-200 p-4 transition hover:border-amber-300 hover:bg-amber-50/50"><span className="flex size-10 items-center justify-center rounded-lg bg-slate-50 text-[#152d4b] group-hover:bg-white"><ItemIcon size={19} /></span><span className="text-sm font-semibold text-slate-800">{String(label)}</span><ArrowUpRight size={16} className="ml-auto text-slate-400 transition group-hover:-translate-y-0.5 group-hover:translate-x-0.5" /></Link>; })}</div></section>
-      <section className="rounded-xl border border-slate-200 bg-white shadow-sm"><div className="flex items-center justify-between border-b border-slate-100 px-5 py-4"><div><h2 className="font-semibold text-[#152d4b]">Workspace focus</h2><p className="mt-1 text-xs text-slate-500">Your next operational steps.</p></div><Activity size={18} className="text-slate-400" /></div><div className="space-y-4 p-5"><p className="text-sm leading-6 text-slate-600">Keep project records, team assignments, procurement, and costs organized from their dedicated modules.</p><Link href="/protected/projects/new" className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-[#152d4b] px-4 text-sm font-semibold text-white hover:bg-[#203e64]"><Plus size={16} /> Create a project</Link><p className="flex items-start gap-2 text-xs leading-5 text-slate-400"><CalendarDays size={15} className="mt-0.5 shrink-0" /> Project task and progress reporting is maintained by the project team’s separate workstream.</p></div></section>
-    </div>
-    <section className="rounded-xl border border-amber-200 bg-amber-50/70 p-5 sm:flex sm:items-center sm:justify-between sm:gap-8"><div className="flex items-start gap-3"><span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-white text-amber-800"><Activity size={18} /></span><div><h2 className="text-sm font-semibold text-[#152d4b]">Construction workspace</h2><p className="mt-1 text-sm leading-6 text-slate-600">Projects, workforce, procurement, and expenses are connected here. Tasks and progress reporting are being developed in the team’s separate workstream.</p></div></div><ArrowUpRight size={18} className="mt-3 hidden shrink-0 text-amber-800 sm:mt-0 sm:block" /></section>
+  const shortcuts = [
+    { icon: BriefcaseBusiness, title: "Project portfolio", copy: "Create, review, and organize project details.", href: "/protected/projects", tag: "Projects" },
+    { icon: UsersRound, title: "Workforce", copy: "Maintain worker records and team assignments.", href: "/protected/workers", tag: "People" },
+    { icon: Boxes, title: "Materials", copy: "Manage catalog items and project requests.", href: "/protected/materials", tag: "Procurement" },
+    { icon: WalletCards, title: "Expenses", copy: "Submit costs, review receipts, and approvals.", href: "/protected/expenses", tag: "Finance" },
+  ];
+
+  return <div className="space-y-8 sm:space-y-10">
+    <section className="dashboard-hero relative isolate overflow-hidden rounded-[28px] text-white" aria-labelledby="dashboard-title">
+      <Image src="https://images.unsplash.com/photo-1763665814710-b0067b823603?auto=format&fit=crop&w=1900&q=85" alt="Construction crew and tower crane at an active project site" fill priority unoptimized sizes="(max-width: 1024px) 100vw, 85vw" className="-z-20 object-cover" />
+      <div className="dashboard-hero-shade absolute inset-0 -z-10" />
+      <div className="dashboard-hero-grid absolute inset-0 -z-10" aria-hidden="true" />
+      <div className="relative grid gap-9 p-6 sm:p-9 lg:grid-cols-[1fr_auto] lg:items-end lg:p-12">
+        <div className="max-w-2xl"><p className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[.17em] text-white/80 backdrop-blur"><span className="size-1.5 rounded-full bg-emerald-400" /> {organization.name}</p><h1 id="dashboard-title" className="mt-5 text-3xl font-semibold leading-tight tracking-[-.04em] sm:text-5xl">Good to see you, <span className="font-serif italic font-normal text-[#f0c777]">{firstName}.</span></h1><p className="mt-4 max-w-xl text-sm leading-6 text-white/75 sm:text-base sm:leading-7">Get a live view of your projects, people, procurement, and costs—all from one workspace.</p></div>
+        <Link href="/protected/projects/new" className="group inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#e9ad47] px-5 text-sm font-bold text-[#19272b] shadow-lg transition duration-300 hover:-translate-y-0.5 hover:bg-[#f2c46f]"><Plus size={17} /> Create a project <ArrowRight size={15} className="transition-transform group-hover:translate-x-1" /></Link>
+      </div>
+      <div className="dashboard-hero-foot relative flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-white/15 px-6 py-4 text-[10px] font-medium text-white/70 sm:px-9 lg:px-12"><span className="inline-flex items-center gap-2"><span className="size-1.5 rounded-full bg-[#f0c777]" /> Your operational snapshot</span><span className="hidden h-3 w-px bg-white/30 sm:block" /><span>Workspace data updates as your team works</span></div>
+    </section>
+
+    <section aria-label="Workspace metrics" className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">{metrics.map(({ icon: Icon, label, value, detail, href, tone }, index) => <Link key={label} href={href} className={`metric-card metric-${tone} group rounded-[20px] border border-slate-200/80 bg-white p-5 shadow-[0_8px_28px_-24px_rgba(18,39,40,.45)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_18px_45px_-27px_rgba(18,39,40,.45)]`} style={{ animationDelay: `${index * 90}ms` }}><div className="flex items-start justify-between gap-3"><span className="text-xs font-semibold text-slate-500">{label}</span><span className="metric-icon flex size-10 items-center justify-center rounded-[14px] transition duration-300 group-hover:rotate-[-7deg] group-hover:scale-105"><Icon size={18} strokeWidth={1.9} /></span></div><div className="mt-4 flex items-end justify-between"><span className="text-4xl font-semibold tracking-[-.06em] text-[#19272b]">{value.toLocaleString()}</span><ArrowUpRight size={17} className="mb-1 text-slate-300 transition group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-[#315e4e]" /></div><p className="mt-1 text-[10px] text-slate-400">{detail}</p></Link>)}</section>
+
+    <section aria-labelledby="quick-access-title"><div className="mb-5 flex items-end justify-between gap-4"><div><p className="section-eyebrow">Your operations</p><h2 id="quick-access-title" className="mt-2 text-2xl font-semibold tracking-tight text-[#19272b] sm:text-3xl">Pick up where work happens</h2></div><Link href="/protected/projects" className="hidden items-center gap-2 text-xs font-bold text-[#315e4e] transition hover:gap-3 sm:inline-flex">View all projects <ArrowRight size={14} /></Link></div><div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">{shortcuts.map(({ icon: Icon, title, copy, href, tag }, index) => <Link href={href} key={title} className="shortcut-card group relative overflow-hidden rounded-[22px] border border-slate-200/80 bg-white p-5 transition duration-500 hover:-translate-y-1 hover:border-[#c5d4ca] hover:shadow-[0_22px_55px_-34px_rgba(18,45,39,.55)] sm:p-6" style={{ animationDelay: `${index * 100}ms` }}><div className="flex items-center justify-between"><span className="flex size-12 items-center justify-center rounded-2xl bg-[#edf3ee] text-[#315e4e] transition duration-300 group-hover:rotate-[-6deg] group-hover:bg-[#e9ad47] group-hover:text-[#19272b]"><Icon size={21} /></span><span className="rounded-full bg-slate-50 px-2.5 py-1 text-[9px] font-bold uppercase tracking-[.13em] text-slate-400">{tag}</span></div><h3 className="mt-7 text-lg font-semibold tracking-tight text-[#19272b]">{title}</h3><p className="mt-2 min-h-10 text-xs leading-5 text-slate-500">{copy}</p><span className="mt-5 inline-flex items-center gap-2 text-[11px] font-bold text-[#315e4e]">Open module <ArrowRight size={14} className="transition-transform group-hover:translate-x-1" /></span><span className="shortcut-watermark" aria-hidden="true"><Icon size={94} strokeWidth={0.8} /></span></Link>)}</div></section>
+
+    <section className="grid gap-4 lg:grid-cols-[1.2fr_.8fr]">
+      <article className="rounded-[22px] border border-slate-200/80 bg-white p-6 shadow-[0_8px_28px_-24px_rgba(18,39,40,.45)] sm:p-7"><div className="flex items-start gap-4"><span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-[#edf3ee] text-[#315e4e]"><BriefcaseBusiness size={20} /></span><div><p className="text-[10px] font-bold uppercase tracking-[.17em] text-[#678077]">A connected workspace</p><h2 className="mt-2 text-xl font-semibold tracking-tight text-[#19272b]">More clarity across every handoff.</h2><p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">Keep your project records, workforce, procurement requests, and expenses organized in dedicated areas that share the same workspace.</p><div className="mt-5 flex flex-wrap gap-2">{["Projects", "People", "Materials", "Costs"].map((item) => <span key={item} className="rounded-full border border-slate-200 px-3 py-1.5 text-[10px] font-semibold text-slate-500">{item}</span>)}</div></div></div></article>
+      <article className="rounded-[22px] border border-[#dfe7df] bg-[#edf3ee] p-6 sm:p-7"><div className="flex items-center gap-3"><span className="flex size-10 items-center justify-center rounded-xl bg-white text-[#315e4e]"><ClipboardList size={19} /></span><p className="text-[10px] font-bold uppercase tracking-[.17em] text-[#678077]">Team workstream</p></div><h2 className="mt-4 text-lg font-semibold text-[#19272b]">Tasks &amp; progress reports</h2><p className="mt-2 text-sm leading-6 text-slate-600">These modules are being built by your teammate and will connect to the shared project workspace.</p></article>
+    </section>
   </div>;
 }
