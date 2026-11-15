@@ -4,43 +4,51 @@
 -- Apply after the existing construction migrations.
 -- DO NOT apply to shared production without approval.
 
+
 -- 1. Progress Reports table
 
-create table public.progress_reports (
-  id uuid primary key default gen_random_uuid(),
+CREATE TABLE public.progress_reports (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 
-  organization_id uuid not null
-    references public.organizations(id)
-    on delete restrict,
+  organization_id UUID NOT NULL
+    REFERENCES public.organizations(id)
+    ON DELETE RESTRICT,
 
-  project_id uuid not null
-    references public.projects(id)
-    on delete restrict,
+  project_id UUID NOT NULL,
 
-  report_type text not null
-    check (report_type in ('daily', 'weekly')),
+  report_type TEXT NOT NULL
+    CHECK (report_type IN ('daily', 'weekly')),
 
-  report_date date not null,
+  report_date DATE NOT NULL,
 
-  progress_percentage integer not null
-    check (progress_percentage between 0 and 100),
+  progress_percentage INTEGER NOT NULL
+    CHECK (progress_percentage BETWEEN 0 AND 100),
 
-  completed_work text not null
-    check (char_length(trim(completed_work)) between 2 and 5000),
+  completed_work TEXT NOT NULL
+    CHECK (
+      char_length(trim(completed_work)) BETWEEN 2 AND 5000
+    ),
 
-  planned_work text not null default ''
-    check (char_length(planned_work) <= 5000),
+  planned_work TEXT NOT NULL DEFAULT ''
+    CHECK (char_length(planned_work) <= 5000),
 
-  issues text not null default ''
-    check (char_length(issues) <= 5000),
+  issues TEXT NOT NULL DEFAULT ''
+    CHECK (char_length(issues) <= 5000),
 
-  created_by uuid not null
-    references public.profiles(id)
-    on delete restrict,
+  created_by UUID NOT NULL
+    REFERENCES public.profiles(id)
+    ON DELETE RESTRICT,
 
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now(),
-  archived_at timestamptz
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  archived_at TIMESTAMPTZ,
+
+  -- Ensure that the project belongs
+  -- to the selected organization.
+  CONSTRAINT progress_reports_project_fk
+    FOREIGN KEY (project_id, organization_id)
+    REFERENCES public.projects(id, organization_id)
+    ON DELETE RESTRICT
 );
 
 -- 2. Validate project relationship and protect audit fields
