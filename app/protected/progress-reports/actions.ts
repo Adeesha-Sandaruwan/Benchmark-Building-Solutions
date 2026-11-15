@@ -175,3 +175,168 @@ export async function createProgressReportAction(
 
   redirect("/protected/progress-reports");
 }
+
+
+
+export async function updateProgressReportAction(
+    _previousState: ReportActionState,
+    formData: FormData,
+  ): Promise<ReportActionState> {
+    const reportId = getValue(formData, "report_id");
+    const reportType = getValue(formData, "report_type");
+    const reportDate = getValue(formData, "report_date");
+    const percentage = getValue(formData, "progress_percentage");
+    const completedWork = getValue(formData, "completed_work");
+    const plannedWork = getValue(formData, "planned_work");
+    const issues = getValue(formData, "issues");
+  
+    if (!uuidPattern.test(reportId)) {
+      return { error: "Invalid report ID." };
+    }
+  
+    if (!reportTypes.some((type) => type === reportType)) {
+      return { error: "Invalid report type." };
+    }
+  
+    if (!validDate(reportDate)) {
+      return { error: "Invalid report date." };
+    }
+  
+    if (!/^\d{1,3}$/.test(percentage)) {
+      return { error: "Progress must be a whole number." };
+    }
+  
+    const progress = Number(percentage);
+  
+    if (progress < 0 || progress > 100) {
+      return { error: "Progress must be between 0 and 100." };
+    }
+  
+    if (completedWork.length < 2 || completedWork.length > 5000) {
+      return { error: "Completed work must contain 2–5000 characters." };
+    }
+  
+    if (plannedWork.length > 5000 || issues.length > 5000) {
+      return { error: "Text fields must be under 5000 characters." };
+    }
+  
+    const supabase = await createClient();
+  
+    const { data: auth, error: authError } =
+      await supabase.auth.getClaims();
+  
+    if (authError || !auth?.claims?.sub) {
+      return { error: "Please sign in again." };
+    }
+  
+    const { data: report, error: readError } = await supabase
+      .from("progress_reports")
+      .select("id, organization_id, project_id")
+      .eq("id", reportId)
+      .is("archived_at", null)
+      .maybeSingle();
+  
+    if (readError || !report) {
+      return { error: "Report not found or access denied." };
+    }
+  
+    const organizations = await getOrganizationOptions();
+  
+    const canManage = organizations.some(
+      (organization) =>
+        organization.id === report.organization_id &&
+        managerRoles.includes(organization.role),
+    );
+  
+    if (!canManage) {
+      return { error: "You cannot edit this report." };
+    }
+  
+    const { data: updated, error } = await supabase
+      .from("progress_reports")
+      .update({
+        report_type: reportType,
+        report_date: reportDate,
+        progress_percentage: progress,
+        completed_work: completedWork,
+        planned_work: plannedWork,
+        issues,
+      })
+      .eq("id", reportId)
+      .eq("organization_id", report.organization_id)
+      .eq("project_id", report.project_id)
+      .is("archived_at", null)
+      .select("id")
+      .maybeSingle();
+  
+    if (error || !updated) {
+      return { error: "Unable to update report." };
+    }
+  
+    revalidatePath("/protected/progress-reports");
+    revalidatePath(`/protected/progress-reports/${reportId}/edit`);
+  
+    redirect("/protected/progress-reports");
+  }
+  
+  export async function archiveProgressReportAction(
+    _previousState: ReportActionState,
+    formData: FormData,
+  ): Promise<ReportActionState> {
+    const reportId = getValue(formData, "report_id");
+  
+    if (!uuidPattern.test(reportId)) {
+      return { error: "Invalid report ID." };
+    }
+  
+    const supabase = await createClient();
+  
+    const { data: auth, error: authError } =
+      await supabase.auth.getClaims();
+  
+    if (authError || !auth?.claims?.sub) {
+      return { error: "Please sign in again." };
+    }
+  
+    const { data: report, error: readError } = await supabase
+      .from("progress_reports")
+      .select("id, organization_id, project_id")
+      .eq("id", reportId)
+      .is("archived_at", null)
+      .maybeSingle();
+  
+    if (readError || !report) {
+      return { error: "Report not found or access denied." };
+    }
+  
+    const organizations = await getOrganizationOptions();
+  
+    const canManage = organizations.some(
+      (organization) =>
+        organization.id === report.organization_id &&
+        managerRoles.includes(organization.role),
+    );
+  
+    if (!canManage) {
+      return { error: "You cannot archive this report." };
+    }
+  
+    const { data: archived, error } = await supabase
+      .from("progress_reports")
+      .update({ archived_at: new Date().toISOString() })
+      .eq("id", reportId)
+      .eq("organization_id", report.organization_id)
+      .eq("project_id", report.project_id)
+      .is("archived_at", null)
+      .select("id")
+      .maybeSingle();
+  
+    if (error || !archived) {
+      return { error: "Unable to archive report." };
+    }
+  
+    revalidatePath("/protected/progress-reports");
+  
+    redirect("/protected/progress-reports");
+  }
+  
