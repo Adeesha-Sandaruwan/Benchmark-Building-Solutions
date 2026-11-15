@@ -338,6 +338,8 @@
     box-shadow: 0 30px 75px -48px rgb(23 49 41 / 72%);
   }
 
+  .dashboard-hero-image { animation: dashboard-image-drift 18s ease-in-out infinite alternate; }
+
   .dashboard-hero-shade {
     background: linear-gradient(100deg, rgb(17 31 32 / 94%) 0%, rgb(23 46 43 / 82%) 44%, rgb(23 46 43 / 38%) 100%), linear-gradient(0deg, rgb(13 27 28 / 44%), transparent 58%);
   }
@@ -379,8 +381,13 @@
     to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
   }
 
+  @keyframes dashboard-image-drift {
+    from { transform: scale(1.015); }
+    to { transform: scale(1.075); }
+  }
+
   @media (prefers-reduced-motion: reduce) {
-    .workspace-content, .metric-card { animation: none; }
+    .workspace-content, .metric-card, .dashboard-hero-image { animation: none; }
     .workspace-content article.rounded-xl.border,
     .workspace-sidebar-photo,
     .shortcut-watermark { transition: none; }

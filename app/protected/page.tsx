@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import {
@@ -7,12 +6,12 @@ import {
   Boxes,
   BriefcaseBusiness,
   ClipboardList,
-  Plus,
   UsersRound,
   WalletCards,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getOrganizationOptions } from "@/lib/data/organizations";
+import { DashboardConstructionCarousel } from "@/components/dashboard-construction-carousel";
 
 export default async function ProtectedPage() {
   const organizations = await getOrganizationOptions();
@@ -43,16 +42,7 @@ export default async function ProtectedPage() {
   ];
 
   return <div className="space-y-8 sm:space-y-10">
-    <section className="dashboard-hero relative isolate overflow-hidden rounded-[28px] text-white" aria-labelledby="dashboard-title">
-      <Image src="https://images.unsplash.com/photo-1763665814710-b0067b823603?auto=format&fit=crop&w=1900&q=85" alt="Construction crew and tower crane at an active project site" fill priority unoptimized sizes="(max-width: 1024px) 100vw, 85vw" className="-z-20 object-cover" />
-      <div className="dashboard-hero-shade absolute inset-0 -z-10" />
-      <div className="dashboard-hero-grid absolute inset-0 -z-10" aria-hidden="true" />
-      <div className="relative grid gap-9 p-6 sm:p-9 lg:grid-cols-[1fr_auto] lg:items-end lg:p-12">
-        <div className="max-w-2xl"><p className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[.17em] text-white/80 backdrop-blur"><span className="size-1.5 rounded-full bg-emerald-400" /> {organization.name}</p><h1 id="dashboard-title" className="mt-5 text-3xl font-semibold leading-tight tracking-[-.04em] sm:text-5xl">Good to see you, <span className="font-serif italic font-normal text-[#f0c777]">{firstName}.</span></h1><p className="mt-4 max-w-xl text-sm leading-6 text-white/75 sm:text-base sm:leading-7">Get a live view of your projects, people, procurement, and costs—all from one workspace.</p></div>
-        <Link href="/protected/projects/new" className="group inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#e9ad47] px-5 text-sm font-bold text-[#19272b] shadow-lg transition duration-300 hover:-translate-y-0.5 hover:bg-[#f2c46f]"><Plus size={17} /> Create a project <ArrowRight size={15} className="transition-transform group-hover:translate-x-1" /></Link>
-      </div>
-      <div className="dashboard-hero-foot relative flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-white/15 px-6 py-4 text-[10px] font-medium text-white/70 sm:px-9 lg:px-12"><span className="inline-flex items-center gap-2"><span className="size-1.5 rounded-full bg-[#f0c777]" /> Your operational snapshot</span><span className="hidden h-3 w-px bg-white/30 sm:block" /><span>Workspace data updates as your team works</span></div>
-    </section>
+    <DashboardConstructionCarousel organizationName={organization.name} firstName={firstName} />
 
     <section aria-label="Workspace metrics" className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">{metrics.map(({ icon: Icon, label, value, detail, href, tone }, index) => <Link key={label} href={href} className={`metric-card metric-${tone} group rounded-[20px] border border-slate-200/80 bg-white p-5 shadow-[0_8px_28px_-24px_rgba(18,39,40,.45)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_18px_45px_-27px_rgba(18,39,40,.45)]`} style={{ animationDelay: `${index * 90}ms` }}><div className="flex items-start justify-between gap-3"><span className="text-xs font-semibold text-slate-500">{label}</span><span className="metric-icon flex size-10 items-center justify-center rounded-[14px] transition duration-300 group-hover:rotate-[-7deg] group-hover:scale-105"><Icon size={18} strokeWidth={1.9} /></span></div><div className="mt-4 flex items-end justify-between"><span className="text-4xl font-semibold tracking-[-.06em] text-[#19272b]">{value.toLocaleString()}</span><ArrowUpRight size={17} className="mb-1 text-slate-300 transition group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-[#315e4e]" /></div><p className="mt-1 text-[10px] text-slate-400">{detail}</p></Link>)}</section>
 

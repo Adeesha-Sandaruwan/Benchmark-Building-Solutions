@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { LogoutButton } from "@/components/logout-button";
 import Link from "next/link";
-import { HardHat, Sparkles } from "lucide-react";
+import { HardHat } from "lucide-react";
 import { connection } from "next/server";
 import { WorkspaceNav } from "@/components/workspace-nav";
 import { getOrganizationOptions } from "@/lib/data/organizations";
@@ -41,7 +41,7 @@ export default async function ProtectedLayout({ children }: { children: React.Re
         <WorkspaceNav />
         <div className="workspace-canvas min-w-0 px-4 pb-[calc(6.5rem+env(safe-area-inset-bottom))] pt-6 sm:px-6 sm:pt-8 lg:px-10 lg:pb-10 lg:pt-9">
           <div className="workspace-content mx-auto w-full max-w-[1400px]">{children}</div>
-          <footer className="mx-auto mt-12 hidden max-w-[1400px] items-center justify-between border-t border-slate-200/80 pt-5 text-[10px] text-slate-400 sm:flex"><span className="inline-flex items-center gap-1.5"><Sparkles size={12} className="text-amber-600" /> Built for the people who build</span><span>Benchmark Building Solutions</span></footer>
+          <footer className="mx-auto mt-12 hidden max-w-[1400px] items-center justify-between border-t border-slate-200/80 pt-5 text-[10px] text-slate-400 sm:flex"><span>Built for the people who build</span><span>Benchmark Building Solutions</span></footer>
         </div>
       </div>
     </main>
