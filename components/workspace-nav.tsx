@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import {
   Boxes,
   BriefcaseBusiness,
+  ClipboardList,
   LayoutDashboard,
   UserCog,
   UsersRound,
@@ -18,6 +19,7 @@ const modules = [
   { href: "/protected/materials", label: "Materials", icon: Boxes },
   { href: "/protected/expenses", label: "Expenses", icon: WalletCards },
   { href: "/protected/team", label: "Team access", icon: UserCog },
+  { href: "/protected/tasks", label: "Tasks", icon: ClipboardList },
 ];
 
 export function WorkspaceNav() {
@@ -43,7 +45,7 @@ export function WorkspaceNav() {
         </div>
       </aside>
 
-      <nav aria-label="Mobile workspace modules" className="workspace-mobile-nav fixed inset-x-0 bottom-0 z-50 grid grid-cols-6 border-t border-slate-200/80 bg-white/95 px-1 pb-[max(.35rem,env(safe-area-inset-bottom))] pt-2 backdrop-blur-xl lg:hidden">
+      <nav aria-label="Mobile workspace modules" className="workspace-mobile-nav fixed inset-x-0 bottom-0 z-50 grid grid-cols-7 border-t border-slate-200/80 bg-white/95 px-1 pb-[max(.35rem,env(safe-area-inset-bottom))] pt-2 backdrop-blur-xl lg:hidden">
         {modules.map(({ href, label, icon: Icon, exact }) => {
           const active = exact ? pathname === href : pathname === href || pathname.startsWith(`${href}/`);
           return <Link key={href} href={href} aria-current={active ? "page" : undefined} className={`flex min-w-0 flex-col items-center justify-center gap-1 rounded-xl py-1 text-[9px] font-semibold transition ${active ? "text-[#274d43]" : "text-slate-400 hover:text-slate-700"}`}><span className={`flex size-8 items-center justify-center rounded-xl transition ${active ? "bg-[#edf3ee] text-[#315e4e]" : ""}`}><Icon size={18} strokeWidth={active ? 2.2 : 1.8} /></span><span className="max-w-full truncate">{label === "Team access" ? "Team" : label}</span></Link>;
