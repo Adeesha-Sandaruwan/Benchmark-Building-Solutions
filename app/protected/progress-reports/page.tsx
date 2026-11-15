@@ -2,6 +2,14 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getOrganizationOptions } from "@/lib/data/organizations";
+import {
+  ReportFilters,
+  type ReportFiltersValue,
+} from "./report-filters";
+import {
+  ReportSummary,
+  type ReportSummaryData,
+} from "./report-summary";
 
 const managerRoles = [
   "owner",
@@ -10,8 +18,52 @@ const managerRoles = [
   "supervisor",
 ];
 
-export default async function ProgressReportsPage() {
-  // Step 1: Load organizations accessible to the user.
+type SearchParams = {
+  search?: string | string[];
+  project?: string | string[];
+  type?: string | string[];
+  from?: string | string[];
+  to?: string | string[];
+};
+
+function firstValue(value?: string | string[]) {
+  return typeof value === "string" ? value : "";
+}
+
+function validDate(value: string) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return false;
+  }
+
+  const date = new Date(`${value}T00:00:00.000Z`);
+
+  return (
+    !Number.isNaN(date.getTime()) &&
+    date.toISOString().slice(0, 10) === value
+  );
+}
+
+function escapeLike(value: string) {
+  return value.replace(/[\\%_]/g, "\\$&");
+}
+
+export default async function ProgressReportsPage({
+  searchParams,
+}: {
+  searchParams: Promise<SearchParams>;
+}) {
+  const params = await searchParams;
+
+  // Read filters from the URL.
+  const requestedFilters: ReportFiltersValue = {
+    search: firstValue(params.search).trim().slice(0, 100),
+    project: firstValue(params.project),
+    type: firstValue(params.type),
+    from: firstValue(params.from),
+    to: firstValue(params.to),
+  };
+
+  // Load organizations available to this user.
   const organizations = await getOrganizationOptions();
 
   if (!organizations.length) {
@@ -22,12 +74,12 @@ export default async function ProgressReportsPage() {
         </h1>
 
         <p className="mt-2 text-slate-500">
-          Join a workspace to view progress reports.
+          Join a workspace before viewing progress reports.
         </p>
 
         <Link
           href="/protected/join"
-          className="mt-3 inline-block text-amber-700 underline"
+          className="mt-4 inline-block text-amber-700 underline"
         >
           Join Workspace
         </Link>
@@ -35,40 +87,39 @@ export default async function ProgressReportsPage() {
     );
   }
 
-  // Step 2: Find organizations where the user
-  // has permission to manage progress reports.
+  const organizationIds = organizations.map((org) => org.id);
+
   const editableOrganizationIds = new Set(
     organizations
-      .filter((organization) =>
-        managerRoles.includes(organization.role)
-      )
-      .map((organization) => organization.id)
+      .filter((org) => managerRoles.includes(org.role))
+      .map((org) => org.id)
   );
 
   const supabase = await createClient();
 
-  // Step 3: Load active progress reports.
-  const { data: reports, error: reportsError } = await supabase
-    .from("progress_reports")
-    .select(
-      "id, organization_id, project_id, report_type, report_date, progress_percentage, completed_work"
-    )
-    .in(
-      "organization_id",
-      organizations.map((organization) => organization.id)
-    )
-    .is("archived_at", null)
-    .order("report_date", { ascending: false })
-    .limit(50);
-
-  // Step 4: Load construction projects.
+  // Load accessible construction projects.
   const { data: projects, error: projectsError } = await supabase
     .from("projects")
     .select("id, organization_id, name")
-    .in(
-      "organization_id",
-      organizations.map((organization) => organization.id)
+    .in("organization_id", organizationIds)
+    .is("archived_at", null)
+    .order("name");
+
+  if (projectsError) {
+    return (
+      <p
+        role="alert"
+        className="rounded-xl border border-red-200 bg-red-50 p-6 text-red-700"
+      >
+        Unable to load construction projects.
+      </p>
     );
+  }
+
+  const projectOptions = (projects ?? []).map((project) => ({
+    id: project.id,
+    name: project.name,
+  }));
 
   const projectNames = new Map(
     (projects ?? []).map((project) => [
@@ -77,10 +128,125 @@ export default async function ProgressReportsPage() {
     ])
   );
 
+  const accessibleProjectIds = new Set(
+    (projects ?? []).map((project) => project.id)
+  );
+
+  // Normalize and validate filter values.
+  const filters: ReportFiltersValue = {
+    search: requestedFilters.search,
+    project: accessibleProjectIds.has(requestedFilters.project)
+      ? requestedFilters.project
+      : "",
+    type: ["daily", "weekly"].includes(requestedFilters.type)
+      ? requestedFilters.type
+      : "",
+    from: validDate(requestedFilters.from)
+      ? requestedFilters.from
+      : "",
+    to: validDate(requestedFilters.to)
+      ? requestedFilters.to
+      : "",
+  };
+
+  const invalidDateRange = Boolean(
+    filters.from && filters.to && filters.from > filters.to
+  );
+
+  // Build a Supabase query using approved filter values.
+  let query = supabase
+    .from("progress_reports")
+    .select(
+      "id, organization_id, project_id, report_type, report_date, progress_percentage, completed_work, planned_work, issues, created_at"
+    )
+    .in("organization_id", organizationIds)
+    .is("archived_at", null);
+
+  if (filters.project) {
+    query = query.eq("project_id", filters.project);
+  }
+
+  if (filters.type) {
+    query = query.eq("report_type", filters.type);
+  }
+
+  if (filters.from) {
+    query = query.gte("report_date", filters.from);
+  }
+
+  if (filters.to) {
+    query = query.lte("report_date", filters.to);
+  }
+
+  if (filters.search) {
+    query = query.ilike(
+      "completed_work",
+      `%${escapeLike(filters.search)}%`
+    );
+  }
+
+  // Limit the initial dashboard result set.
+  const { data: reports, error: reportsError } = invalidDateRange
+    ? { data: [], error: null }
+    : await query
+        .order("report_date", { ascending: false })
+        .order("created_at", { ascending: false })
+        .limit(200);
+
+  const visibleReports = reports ?? [];
+
+  // Create dashboard statistics from filtered reports.
+  const latestByProject = new Map<
+    string,
+    {
+      projectId: string;
+      projectName: string;
+      percentage: number;
+      reportDate: string;
+    }
+  >();
+
+  for (const report of visibleReports) {
+    const key = `${report.organization_id}:${report.project_id}`;
+
+    // Query is sorted newest first.
+    if (!latestByProject.has(key)) {
+      latestByProject.set(key, {
+        projectId: key,
+        projectName:
+          projectNames.get(key) ?? "Construction Project",
+        percentage: report.progress_percentage,
+        reportDate: report.report_date,
+      });
+    }
+  }
+
+  const summary: ReportSummaryData = {
+    totalReports: visibleReports.length,
+
+    reportingProjects: latestByProject.size,
+
+    dailyReports: visibleReports.filter(
+      (report) => report.report_type === "daily"
+    ).length,
+
+    weeklyReports: visibleReports.filter(
+      (report) => report.report_type === "weekly"
+    ).length,
+
+    reportsWithIssues: visibleReports.filter(
+      (report) => report.issues.trim().length > 0
+    ).length,
+
+    latestProjectProgress: Array.from(
+      latestByProject.values()
+    ),
+  };
+
   const canCreateReports = editableOrganizationIds.size > 0;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Page header */}
       <header className="flex flex-wrap items-center justify-between gap-4">
         <div>
@@ -89,142 +255,180 @@ export default async function ProgressReportsPage() {
           </h1>
 
           <p className="mt-2 text-sm text-slate-500">
-            Track construction progress, completed activities,
-            and project updates.
+            Monitor construction activities, reporting
+            history, and project progress.
           </p>
         </div>
 
         {canCreateReports && (
           <Link
             href="/protected/progress-reports/new"
-            className="inline-flex items-center rounded-lg bg-[#152d4b] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#203e64]"
+            className="rounded-lg bg-[#152d4b] px-5 py-3 text-sm font-semibold text-white hover:bg-[#203e64]"
           >
             + Create Report
           </Link>
         )}
       </header>
 
-      {/* Database error */}
-      {reportsError || projectsError ? (
-        <section
+      {/* Search and filters */}
+      <ReportFilters
+        projects={projectOptions}
+        filters={filters}
+      />
+
+      {invalidDateRange ? (
+        <p
           role="alert"
-          className="rounded-xl border border-red-200 bg-red-50 p-6"
+          className="rounded-xl border border-amber-200 bg-amber-50 p-5 text-amber-800"
         >
-          <h2 className="font-semibold text-red-700">
-            Unable to load progress reports
-          </h2>
-
-          <p className="mt-2 text-sm text-red-600">
-            Please check the database migration,
-            project access, and Supabase permissions.
-          </p>
-        </section>
-      ) : !reports?.length ? (
-        /* Empty reports state */
-        <section className="rounded-xl border border-dashed border-slate-300 bg-white p-10 text-center">
-          <h2 className="text-xl font-semibold text-[#152d4b]">
-            No progress reports found
-          </h2>
-
-          <p className="mt-2 text-sm text-slate-500">
-            Reports will appear here once they are submitted.
-          </p>
-
-          {canCreateReports && (
-            <Link
-              href="/protected/progress-reports/new"
-              className="mt-5 inline-flex rounded-lg bg-[#152d4b] px-5 py-3 text-sm font-semibold text-white hover:bg-[#203e64]"
-            >
-              Create First Report
-            </Link>
-          )}
-        </section>
+          The From Date cannot be later than the To Date.
+        </p>
+      ) : reportsError ? (
+        <p
+          role="alert"
+          className="rounded-xl border border-red-200 bg-red-50 p-5 text-red-700"
+        >
+          Unable to load reports. Check database migrations
+          and Supabase access permissions.
+        </p>
       ) : (
-        /* Reports cards */
-        <div className="grid gap-4 md:grid-cols-2">
-          {reports.map((report) => {
-            const canEdit = editableOrganizationIds.has(
-              report.organization_id
-            );
+        <>
+          {/* Dashboard summary */}
+          <ReportSummary
+            summary={summary}
+            limited={visibleReports.length === 200}
+          />
 
-            const projectName =
-              projectNames.get(
-                `${report.organization_id}:${report.project_id}`
-              ) ?? "Construction Project";
+          {/* Reports list */}
+          <section className="space-y-4">
+            <div>
+              <h2 className="text-xl font-semibold text-[#152d4b]">
+                Report History
+              </h2>
 
-            return (
-              <article
-                key={report.id}
-                className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
-              >
-                {/* Report information */}
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-wide text-amber-700">
-                      {report.report_type === "daily"
-                        ? "Daily Report"
-                        : report.report_type === "weekly"
-                        ? "Weekly Report"
-                        : "Progress Report"}
-                    </p>
+              <p className="mt-1 text-sm text-slate-500">
+                {visibleReports.length} matching reports shown
+              </p>
+            </div>
 
-                    <h2 className="mt-1 text-lg font-semibold text-[#152d4b]">
-                      {projectName}
-                    </h2>
+            {visibleReports.length === 0 ? (
+              <div className="rounded-xl border border-dashed border-slate-300 bg-white p-10 text-center">
+                <h3 className="text-lg font-semibold text-[#152d4b]">
+                  No matching progress reports
+                </h3>
 
-                    <p className="mt-1 text-sm text-slate-500">
-                      Report Date: {report.report_date}
-                    </p>
-                  </div>
+                <p className="mt-2 text-sm text-slate-500">
+                  Try changing your filters or create
+                  a new progress report.
+                </p>
 
-                  <span className="text-2xl font-bold text-[#152d4b]">
-                    {report.progress_percentage}%
-                  </span>
-                </div>
-
-                {/* Progress bar */}
-                <div
-                  className="mt-4 h-2 overflow-hidden rounded-full bg-slate-200"
-                  role="progressbar"
-                  aria-label={`${projectName} reported progress`}
-                  aria-valuenow={report.progress_percentage}
-                  aria-valuemin={0}
-                  aria-valuemax={100}
+                <Link
+                  href="/protected/progress-reports"
+                  className="mt-4 inline-block text-amber-700 underline"
                 >
-                  <div
-                    className="h-full rounded-full bg-amber-500 transition-all"
-                    style={{
-                      width: `${report.progress_percentage}%`,
-                    }}
-                  />
-                </div>
+                  Clear Filters
+                </Link>
+              </div>
+            ) : (
+              <div className="grid gap-4 md:grid-cols-2">
+                {visibleReports.map((report) => {
+                  const projectKey =
+                    `${report.organization_id}:${report.project_id}`;
 
-                {/* Completed work */}
-                <div className="mt-5">
-                  <h3 className="text-sm font-semibold text-[#152d4b]">
-                    Completed Work
-                  </h3>
+                  const projectName =
+                    projectNames.get(projectKey) ??
+                    "Construction Project";
 
-                  <p className="mt-2 line-clamp-3 whitespace-pre-wrap text-sm text-slate-600">
-                    {report.completed_work}
-                  </p>
-                </div>
+                  const canEdit = editableOrganizationIds.has(
+                    report.organization_id
+                  );
 
-                {/* Edit button - authorized roles only */}
-                {canEdit && (
-                  <div className="mt-5 border-t border-slate-100 pt-4">
-                    <Link
-                      href={`/protected/progress-reports/${report.id}/edit`}
-                      className="inline-flex items-center rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-[#152d4b] transition hover:bg-slate-50"
+                  return (
+                    <article
+                      key={report.id}
+                      className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
                     >
-                      Edit Report
-                    </Link>
-                  </div>
-                )}
-              </article>
-            );
-          })}
-        </div>
+                      <div className="flex items-start justify-between gap-4">
+                        <div>
+                          <p className="text-xs font-semibold uppercase tracking-wide text-amber-700">
+                            {report.report_type === "daily"
+                              ? "Daily Report"
+                              : "Weekly Report"}
+                          </p>
+
+                          <h3 className="mt-2 text-lg font-semibold text-[#152d4b]">
+                            {projectName}
+                          </h3>
+
+                          <p className="mt-1 text-sm text-slate-500">
+                            {report.report_date}
+                          </p>
+                        </div>
+
+                        <span className="text-2xl font-bold text-[#152d4b]">
+                          {report.progress_percentage}%
+                        </span>
+                      </div>
+
+                      {/* Reported progress */}
+                      <div
+                        className="mt-4 h-2 overflow-hidden rounded-full bg-slate-200"
+                        role="progressbar"
+                        aria-label={`${projectName} reported progress`}
+                        aria-valuenow={report.progress_percentage}
+                        aria-valuemin={0}
+                        aria-valuemax={100}
+                      >
+                        <div
+                          className="h-full rounded-full bg-amber-500"
+                          style={{
+                            width: `${report.progress_percentage}%`,
+                          }}
+                        />
+                      </div>
+
+                      {/* Completed work */}
+                      <div className="mt-5">
+                        <h4 className="text-sm font-semibold text-[#152d4b]">
+                          Completed Work
+                        </h4>
+
+                        <p className="mt-2 line-clamp-3 whitespace-pre-wrap text-sm text-slate-600">
+                          {report.completed_work}
+                        </p>
+                      </div>
+
+                      {/* Reported issues */}
+                      {report.issues.trim() && (
+                        <div className="mt-4 rounded-lg bg-amber-50 p-3">
+                          <h4 className="text-sm font-semibold text-amber-900">
+                            Issues / Delays
+                          </h4>
+
+                          <p className="mt-1 line-clamp-2 whitespace-pre-wrap text-sm text-amber-800">
+                            {report.issues}
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Edit report */}
+                      {canEdit && (
+                        <div className="mt-5 border-t border-slate-100 pt-4">
+                          <Link
+                            href={`/protected/progress-reports/${report.id}/edit`}
+                            className="inline-flex rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-[#152d4b] hover:bg-slate-50"
+                          >
+                            Edit Report
+                          </Link>
+                        </div>
+                      )}
+                    </article>
+                  );
+                })}
+              </div>
+            )}
+          </section>
+        </>
       )}
     </div>
   );
