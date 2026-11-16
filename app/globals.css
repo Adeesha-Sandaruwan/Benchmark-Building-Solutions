@@ -508,7 +508,16 @@
     border-right: 1px solid rgb(219 226 219 / 84%);
     background: rgb(250 251 248 / 89%);
     backdrop-filter: blur(18px);
+    overscroll-behavior: contain;
+    scrollbar-color: rgb(49 94 78 / 28%) transparent;
+    scrollbar-gutter: stable;
+    scrollbar-width: thin;
   }
+
+  .workspace-sidebar::-webkit-scrollbar { width: 8px; }
+  .workspace-sidebar::-webkit-scrollbar-track { background: transparent; }
+  .workspace-sidebar::-webkit-scrollbar-thumb { border: 2px solid transparent; border-radius: 9999px; background: rgb(49 94 78 / 25%); background-clip: padding-box; }
+  .workspace-sidebar::-webkit-scrollbar-thumb:hover { background: rgb(49 94 78 / 45%); background-clip: padding-box; }
 
   .workspace-nav-link-active {
     background: linear-gradient(105deg, #e9f0ea, #f3f6f1);

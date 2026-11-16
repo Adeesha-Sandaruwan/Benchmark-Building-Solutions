@@ -66,7 +66,7 @@ export function WorkspaceNav() {
   return (
     <>
       {/* Desktop Sidebar */}
-      <aside className="workspace-sidebar hidden lg:sticky lg:top-[72px] lg:flex lg:h-[calc(100svh-72px)] lg:flex-col">
+      <aside className="workspace-sidebar hidden min-h-0 overscroll-contain lg:sticky lg:top-[72px] lg:flex lg:h-[calc(100svh-72px)] lg:flex-col lg:overflow-y-auto">
         <div className="px-4 pb-3 pt-7">
           <p className="px-3 text-[10px] font-bold uppercase tracking-[.2em] text-slate-400">
             Workspace
