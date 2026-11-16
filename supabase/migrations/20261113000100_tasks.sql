@@ -312,6 +312,7 @@ with check (
   )
 
   and created_by = (select auth.uid())
+  and archived_at is null
 
 );
 
