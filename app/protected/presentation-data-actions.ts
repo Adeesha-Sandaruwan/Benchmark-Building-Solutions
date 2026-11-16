@@ -113,7 +113,7 @@ export async function seedPresentationDataAction(
       { id: projectIds.harbor, organization_id: orgId, code: projectCodes[0], name: "Harbor View Residences", client_name: "Ceylon Urban Developments PLC", description: "Construction of a 24-storey residential tower with two basement parking levels, podium amenities, and associated utility works.", location: "Marine Drive, Colombo 03", status: "active", manager_id: userId, budget: 486000000, currency: "LKR", start_date: day(-190), target_end_date: day(190), created_by: userId },
       { id: projectIds.hospital, organization_id: orgId, code: projectCodes[1], name: "Kandy Regional Medical Centre", client_name: "Central Province Health Services", description: "New clinical block, diagnostic wing, central plant upgrades, and phased refurbishment of the existing outpatient department.", location: "Peradeniya Road, Kandy", status: "active", manager_id: userId, budget: 720000000, currency: "LKR", start_date: day(-320), target_end_date: day(140), created_by: userId },
       { id: projectIds.logistics, organization_id: orgId, code: projectCodes[2], name: "Southern Logistics Hub", client_name: "Southern Gateway Logistics Ltd", description: "A distribution facility with a 12,000 m² warehouse, loading bays, offices, drainage, and site access improvements.", location: "Weligama Industrial Zone, Matara", status: "on_hold", manager_id: userId, budget: 315000000, currency: "LKR", start_date: day(-75), target_end_date: day(230), created_by: userId },
-    ], "projects", "Projects");
+    ], "Projects");
 
     const workers = [
       ["Nimal Perera", "Senior Site Engineer", "active"], ["Kavindi Jayawardena", "Quantity Surveyor", "active"],
@@ -124,7 +124,7 @@ export async function seedPresentationDataAction(
     await write("workers", workers.map(([full_name, trade, employment_status], index) => ({
       id: workerIds[index], organization_id: orgId, worker_code: workerCodes[index], full_name, trade, employment_status,
       start_date: day(-360 + index * 19), notes: `Assigned to the ${index < 5 ? "Harbor View Residences" : "Kandy Regional Medical Centre"} delivery team.`, created_by: userId,
-    })), "workers", "Workers");
+    })), "Workers");
 
     const assignmentRows = [
       ...workerIds.slice(0, 5).map((workerId, index) => ({ id: `b2600004-0000-4000-8000-${String(index + 1).padStart(12, "0")}`, organization_id: orgId, project_id: projectIds.harbor, worker_id: workerId, role_on_project: workers[index][1], assigned_by: userId, notes: "Core delivery team" })),
@@ -132,7 +132,7 @@ export async function seedPresentationDataAction(
       { id: "b2600004-0000-4000-8000-000000000011", organization_id: orgId, project_id: projectIds.logistics, worker_id: workerIds[0], role_on_project: "Project oversight", assigned_by: userId, notes: "Planning and coordination" },
       { id: "b2600004-0000-4000-8000-000000000012", organization_id: orgId, project_id: projectIds.hospital, worker_id: workerIds[0], role_on_project: "Senior site engineering", assigned_by: userId, notes: "Engineering oversight for foundation and clinical block inspections" },
     ];
-    await write("project_worker_assignments", assignmentRows, "assignments", "Project team assignments");
+    await write("project_worker_assignments", assignmentRows, "Project team assignments");
 
     const catalog = [
       ["MAT-101", "Ready-mix concrete, Grade 30", "Concrete", "m³", "Lanka Ready Mix Ltd"],
@@ -144,7 +144,7 @@ export async function seedPresentationDataAction(
       ["MAT-107", "PVC pressure pipe, 110 mm", "Plumbing", "length", "Anton PVC"],
       ["MAT-108", "Waterproofing membrane, 4 mm", "Waterproofing", "roll", "Sika Lanka"],
     ];
-    await write("materials", catalog.map(([material_code, name, category, unit, default_supplier], index) => ({ id: materialIds[index], organization_id: orgId, material_code, name, category, unit, default_supplier, created_by: userId })), "materials", "Materials catalog");
+    await write("materials", catalog.map(([material_code, name, category, unit, default_supplier], index) => ({ id: materialIds[index], organization_id: orgId, material_code, name, category, unit, default_supplier, created_by: userId })), "Materials catalog");
 
     const requests = [
       [projectIds.harbor, 0, 180, 90, 42000, "partially_received", -2, "First structural pour delivered in two batches; balance scheduled for the next slab cycle."],
@@ -160,7 +160,7 @@ export async function seedPresentationDataAction(
     await write("project_materials", requests.map(([project_id, materialIndex, quantity, received, cost, status, neededOffset, notes], index) => ({
       id: `b2600005-0000-4000-8000-${String(index + 1).padStart(12, "0")}`, organization_id: orgId, project_id,
       material_id: materialIds[materialIndex as number], quantity_requested: quantity, quantity_received: received, quantity_used: Math.min(received as number, Math.floor((received as number) * 0.55)), unit_cost: cost, supplier: catalog[materialIndex as number][4], status, needed_by: day(neededOffset as number), notes, requested_by: userId,
-    })), "project_materials", "Material requests");
+    })), "Material requests");
 
     const expenseRows = [
       [projectIds.harbor, "Equipment", "Colombo Crane Services", "Tower crane and operator, week 46", 485000, -1],
@@ -174,7 +174,7 @@ export async function seedPresentationDataAction(
     ];
     await write("expenses", expenseRows.map(([project_id, category, merchant, description, amount, dateOffset], index) => ({
       id: `b2600006-0000-4000-8000-${String(index + 1).padStart(12, "0")}`, organization_id: orgId, project_id, category, merchant, description, amount, currency: "LKR", expense_date: day(dateOffset as number), status: "submitted", submitted_by: userId,
-    })), "expenses", "Expenses");
+    })), "Expenses");
 
     const tasks = [
       [projectIds.harbor, "Complete level 04 column reinforcement inspection", 0, "in_progress", "high", -2, 1],
@@ -194,7 +194,7 @@ export async function seedPresentationDataAction(
       id: `b2600007-0000-4000-8000-${String(index + 1).padStart(12, "0")}`, organization_id: orgId, project_id, title,
       description: `Coordinate with the site team, record the inspection outcome, and update the project record for ${title.toString().toLowerCase()}.`,
       assigned_worker_id: workerIds[workerIndex as number], status, priority, start_date: day(startOffset as number), due_date: day(dueOffset as number), created_by: userId,
-    })), "tasks", "Tasks");
+    })), "Tasks");
 
     const reportRows = [
       [projectIds.harbor, "daily", -1, 64, "Level 04 column reinforcement fixed and inspected. Basement waterproofing continued on the north retaining wall.", "Complete the level 04 pour and receive the balance of Grade 30 concrete.", "Concrete delivery moved to the afternoon due to traffic restrictions."],
@@ -206,7 +206,7 @@ export async function seedPresentationDataAction(
     ];
     await write("progress_reports", reportRows.map(([project_id, report_type, reportOffset, progress_percentage, completed_work, planned_work, issues], index) => ({
       id: `b2600008-0000-4000-8000-${String(index + 1).padStart(12, "0")}`, organization_id: orgId, project_id, report_type, report_date: day(reportOffset as number), progress_percentage, completed_work, planned_work, issues, created_by: userId,
-    })), "progress_reports", "Progress reports");
+    })), "Progress reports");
   } catch (error) {
     return { message: null, error: error instanceof Error ? error.message : "Presentation records could not be loaded. Retry to complete the remaining records." };
   }
