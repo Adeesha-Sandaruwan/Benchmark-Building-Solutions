@@ -196,6 +196,247 @@
   .module-card { transform-style: preserve-3d; }
   .module-card:hover { transform: perspective(900px) translateY(-5px) rotateX(1deg) rotateY(-1deg); }
 
+  .site-motion-section {
+    isolation: isolate;
+    background: linear-gradient(135deg, #eef3ed 0%, #f8f8f5 52%, #e9eef4 100%);
+  }
+
+  .site-motion-glow {
+    position: absolute;
+    width: 24rem;
+    height: 24rem;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: .3;
+    pointer-events: none;
+  }
+
+  .site-motion-glow-one { top: -10rem; left: -9rem; background: #6fbd9a; }
+  .site-motion-glow-two { right: -9rem; bottom: -14rem; background: #e9ad47; }
+
+  .site-motion-frame {
+    min-width: 0;
+    overflow: hidden;
+    border: 1px solid rgb(255 255 255 / 80%);
+    border-radius: 28px;
+    background: #142624;
+    box-shadow: 0 34px 90px -45px rgb(17 42 38 / 60%);
+    transform: translateZ(0);
+  }
+
+  .site-motion-video {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    background: #142624;
+    object-fit: cover;
+  }
+
+  .site-motion-label {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    display: inline-flex;
+    min-height: 36px;
+    align-items: center;
+    gap: .55rem;
+    border: 1px solid rgb(255 255 255 / 22%);
+    border-radius: 9999px;
+    background: rgb(16 30 31 / 78%);
+    padding: .45rem .75rem;
+    color: #fff;
+    font-size: .62rem;
+    font-weight: 700;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    backdrop-filter: blur(12px);
+  }
+
+  .site-motion-live-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #70e2a5;
+    box-shadow: 0 0 12px rgb(112 226 165 / 90%);
+    animation: site-live-pulse 2s ease-out infinite;
+  }
+
+  .site-motion-preview {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    display: grid;
+    width: 154px;
+    gap: .12rem;
+    border: 1px solid rgb(255 255 255 / 32%);
+    border-radius: 16px;
+    background: rgb(250 251 248 / 92%);
+    padding: .7rem;
+    color: #19272b;
+    box-shadow: 0 16px 38px -20px rgb(0 0 0 / 60%);
+    backdrop-filter: blur(16px);
+    animation: site-card-float 6s ease-in-out infinite;
+  }
+
+  .site-motion-preview-title {
+    margin-bottom: .25rem;
+    color: #77847d;
+    font-size: .48rem;
+    font-weight: 800;
+    letter-spacing: .1em;
+  }
+
+  .site-motion-preview-row {
+    display: flex;
+    min-height: 25px;
+    align-items: center;
+    gap: .45rem;
+    border-top: 1px solid #e9ede7;
+    color: #364744;
+    font-size: .59rem;
+    font-weight: 650;
+  }
+
+  .site-motion-preview-row svg { color: #39755f; }
+
+  @keyframes site-live-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgb(112 226 165 / 42%); }
+    50% { box-shadow: 0 0 0 6px rgb(112 226 165 / 0%); }
+  }
+
+  @keyframes site-card-float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+  }
+
+  @media (max-width: 640px) {
+    .site-motion-video { aspect-ratio: 4 / 3; }
+    .site-motion-frame { border-radius: 22px; }
+    .site-motion-preview { top: auto; right: .65rem; bottom: 2.2rem; width: 124px; padding: .55rem; border-radius: 12px; }
+    .site-motion-preview-row { min-height: 22px; font-size: .53rem; }
+    .site-motion-preview-title { font-size: .42rem; }
+    .site-motion-label { top: .65rem; left: .65rem; min-height: 32px; font-size: .52rem; }
+  }
+
+  .egotech-home-footer {
+    isolation: isolate;
+    background-color: #102a28;
+    background-image: radial-gradient(ellipse at 8% 0%, rgb(20 108 87 / 48%), transparent 38%), radial-gradient(ellipse at 92% 42%, rgb(89 58 135 / 25%), transparent 34%), linear-gradient(145deg, #102a28, #142d37 52%, #20253b);
+  }
+
+  .egotech-footer-eyebrow {
+    color: #f3c66d;
+    font-size: .66rem;
+    font-weight: 800;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+  }
+
+  .egotech-footer-title {
+    color: #fff;
+    font-weight: 650;
+    letter-spacing: -.055em;
+    line-height: 1.08;
+  }
+
+  .egotech-footer-title em {
+    color: #f3c66d;
+    font-family: Georgia, serif;
+    font-weight: 500;
+  }
+
+  .egotech-footer-orb {
+    position: absolute;
+    width: 280px;
+    height: 280px;
+    border: 1px solid rgb(255 255 255 / 12%);
+    border-radius: 50%;
+    pointer-events: none;
+  }
+
+  .egotech-footer-orb-one { top: 5rem; right: -8rem; animation: egotech-orbit 18s ease-in-out infinite alternate; }
+  .egotech-footer-orb-two { top: 18rem; left: -14rem; width: 360px; height: 360px; border-color: rgb(233 173 71 / 12%); animation: egotech-orbit 22s ease-in-out infinite alternate-reverse; }
+
+  .egotech-service-card {
+    position: relative;
+    min-width: 0;
+    overflow: hidden;
+    border: 1px solid rgb(255 255 255 / 17%);
+    box-shadow: 0 20px 50px -32px rgb(0 0 0 / 65%);
+    transform-style: preserve-3d;
+  }
+
+  .egotech-service-card::after {
+    position: absolute;
+    right: -3rem;
+    bottom: -5rem;
+    width: 11rem;
+    height: 11rem;
+    border: 1px solid rgb(255 255 255 / 13%);
+    border-radius: 50%;
+    content: "";
+    pointer-events: none;
+    transition: transform 500ms ease;
+  }
+
+  .egotech-service-card:hover { transform: perspective(1000px) translateY(-6px) rotateX(1deg); }
+  .egotech-service-card:hover::after { transform: scale(1.2); }
+  .egotech-service-card[data-tone="0"] { background: linear-gradient(145deg, #146a55, #12443f); }
+  .egotech-service-card[data-tone="1"] { background: linear-gradient(145deg, #365b9b, #303e72); }
+  .egotech-service-card[data-tone="2"] { background: linear-gradient(145deg, #a95f35, #713d39); }
+  .egotech-service-card[data-tone="3"] { background: linear-gradient(145deg, #76602b, #4b4829); }
+  .egotech-service-card h3 { color: #fff; }
+  .egotech-service-card p { color: rgb(255 255 255 / 76%); }
+  .egotech-service-card a { color: #ffe39c; }
+  .egotech-service-card a:hover { color: #fff; }
+  .egotech-service-icon { background: rgb(255 255 255 / 15%); color: #fff1c7; }
+
+  .egotech-contact-panel {
+    background: linear-gradient(112deg, #f2c35f 0%, #edaa53 48%, #e77e62 100%);
+    box-shadow: 0 24px 70px -38px rgb(240 166 83 / 70%);
+    color: #172a2b;
+  }
+
+  .egotech-contact-panel h2 { color: #172a2b; }
+  .egotech-contact-panel p { color: rgb(23 42 43 / 72%); }
+  .egotech-contact-panel > div > div > p:first-child { color: #62451b; }
+
+  .egotech-footer-bottom { border-color: rgb(255 255 255 / 16%); }
+  .egotech-footer-bottom nav a:hover { color: #f3c66d; }
+  .egotech-footer-copyright { border-color: rgb(255 255 255 / 13%); color: rgb(255 255 255 / 48%); }
+
+  .egotech-contact-link {
+    display: flex;
+    min-height: 48px;
+    align-items: center;
+    gap: .65rem;
+    min-width: 0;
+    border: 1px solid rgb(23 42 43 / 14%);
+    border-radius: 9999px;
+    background: rgb(255 255 255 / 42%);
+    padding: .7rem .9rem;
+    color: #172a2b;
+    font-size: .7rem;
+    font-weight: 600;
+    transition: border-color 220ms ease, background-color 220ms ease, transform 220ms ease, color 220ms ease;
+  }
+
+  .egotech-contact-link:hover { transform: translateY(-2px); border-color: rgb(255 255 255 / 85%); background: rgb(255 255 255 / 70%); color: #102a28; }
+  .egotech-contact-link > svg:first-child { flex: 0 0 auto; color: #875226; }
+
+  @media (max-width: 640px) {
+    .egotech-home-footer { padding-top: 3.5rem; }
+    .egotech-footer-orb { opacity: .55; }
+    .egotech-service-card p { min-height: 0; }
+    .egotech-contact-link { border-radius: 16px; padding-inline: 1rem; font-size: .75rem; }
+    .egotech-footer-bottom nav { gap: .75rem 1.25rem; }
+  }
+
+  @keyframes egotech-orbit {
+    from { transform: translate3d(0, 0, 0) rotate(-8deg) scale(.96); }
+    to { transform: translate3d(-16px, 18px, 0) rotate(8deg) scale(1.04); }
+  }
+
   .about-photo img { transition: transform 1.2s cubic-bezier(.2,.75,.25,1); }
   .about-photo:hover img { transform: scale(1.045); }
 
@@ -220,6 +461,9 @@
     [data-reveal] { opacity: 1; transform: none; }
     .hero-photo-card, .about-photo img { transition: none; }
     .floating-insight, .contact-glow { animation: none; }
+    .site-motion-live-dot, .site-motion-preview { animation: none; }
+    .egotech-footer-orb { animation: none; }
+    .egotech-service-card, .egotech-contact-link { transition: none; }
   }
 
   .workspace-app {

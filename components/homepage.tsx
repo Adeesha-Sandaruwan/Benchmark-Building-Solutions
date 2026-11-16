@@ -2,22 +2,29 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ArrowDown,
   ArrowRight,
+  ArrowUpRight,
+  Activity,
   Boxes,
   BriefcaseBusiness,
   Check,
   ChevronLeft,
   ChevronRight,
+  Code2,
   ClipboardList,
+  GraduationCap,
   HardHat,
   Mail,
   Menu,
+  MessageCircle,
+  Phone,
   ShieldCheck,
   UsersRound,
   WalletCards,
+  Wrench,
   X,
 } from "lucide-react";
 
@@ -60,6 +67,7 @@ const steps = [
 export function Homepage() {
   const [activeSlide, setActiveSlide] = useState(0);
   const [menuOpen, setMenuOpen] = useState(false);
+  const siteVideoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -84,6 +92,20 @@ export function Homepage() {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const timer = window.setInterval(() => setActiveSlide((current) => (current + 1) % slides.length), 6500);
     return () => window.clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    const video = siteVideoRef.current;
+    if (!video || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) video.play().catch(() => undefined);
+      else video.pause();
+    }, { threshold: 0.45 });
+    observer.observe(video);
+    return () => {
+      observer.disconnect();
+      video.pause();
+    };
   }, []);
 
   const moveSlide = (direction: number) => {
@@ -143,6 +165,47 @@ export function Homepage() {
         <a href="#solutions" className="absolute bottom-5 left-1/2 hidden -translate-x-1/2 items-center gap-2 text-[10px] font-semibold uppercase tracking-[.2em] text-white/45 transition hover:text-white/80 lg:flex">Scroll to explore <ArrowDown size={13} className="animate-bounce" /></a>
       </section>
 
+      <section id="site-in-motion" className="site-motion-section relative overflow-hidden px-5 py-20 sm:px-8 sm:py-24 lg:px-12 lg:py-28">
+        <div className="site-motion-glow site-motion-glow-one" aria-hidden="true" />
+        <div className="site-motion-glow site-motion-glow-two" aria-hidden="true" />
+        <div className="relative mx-auto grid max-w-[1440px] items-center gap-10 lg:grid-cols-[1.18fr_.82fr] lg:gap-16">
+          <div className="site-motion-frame relative" data-reveal>
+            <video
+              ref={siteVideoRef}
+              className="site-motion-video"
+              muted
+              loop
+              playsInline
+              controls
+              preload="none"
+              poster="https://images.unsplash.com/photo-1763665814710-b0067b823603?auto=format&fit=crop&w=1600&q=85"
+              aria-label="Time-lapse footage of an active construction site with cranes and workers"
+            >
+              <source src="https://videos.pexels.com/video-files/5698647/5698647-hd_1920_1080_30fps.mp4" type="video/mp4" />
+            </video>
+            <div className="site-motion-label"><span className="site-motion-live-dot" /> Construction in motion</div>
+            <div className="site-motion-preview" aria-label="Benchmark workspace areas">
+              <span className="site-motion-preview-title">BENCHMARK WORKSPACE</span>
+              <span className="site-motion-preview-row"><BriefcaseBusiness size={14} /> Projects</span>
+              <span className="site-motion-preview-row"><UsersRound size={14} /> Workers</span>
+              <span className="site-motion-preview-row"><Boxes size={14} /> Materials</span>
+              <span className="site-motion-preview-row"><WalletCards size={14} /> Expenses</span>
+            </div>
+          </div>
+
+          <div className="site-motion-copy" data-reveal>
+            <p className="section-eyebrow">The work, as it happens</p>
+            <h2 className="section-title mt-4">A busy site.<br />A <em>clearer picture.</em></h2>
+            <p className="mt-6 max-w-xl text-base leading-7 text-[#637072]">Construction moves quickly. Benchmark brings the people, project details, materials, and costs behind the build into one connected workspace, so your team can keep the bigger picture in view.</p>
+            <div className="mt-8 flex items-start gap-4 rounded-2xl border border-[#e2e9e2] bg-white/80 p-4 shadow-[0_18px_50px_-38px_rgba(18,45,39,.45)] sm:p-5">
+              <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-[#e9ad47]/20 text-[#315e4e]"><Activity size={20} /></span>
+              <span><strong className="block text-sm font-semibold text-[#19272b]">One workspace for the moving parts</strong><span className="mt-1 block text-xs leading-5 text-[#687573]">Keep project records and day-to-day coordination together, whether you’re at your desk or on site.</span></span>
+            </div>
+            <a href="#solutions" className="mt-7 inline-flex min-h-11 items-center gap-2 text-sm font-bold text-[#315e4e] transition hover:gap-3 hover:text-[#19272b]">Explore the platform <ArrowRight size={16} /></a>
+          </div>
+        </div>
+      </section>
+
       <section id="solutions" className="scroll-mt-24 px-5 py-24 sm:px-8 lg:px-12 lg:py-32">
         <div className="mx-auto max-w-[1440px]">
           <div className="grid gap-8 lg:grid-cols-[.8fr_1.2fr] lg:items-end" data-reveal><div><p className="section-eyebrow">The platform</p><h2 className="section-title mt-4">Everything that moves<br className="hidden sm:block" /> a project, <em>in sync.</em></h2></div><p className="max-w-xl pb-1 text-base leading-7 text-[#637072]">Construction work is connected. Your tools should be, too. Benchmark brings essential project information into one shared, easy-to-follow workspace.</p></div>
@@ -169,7 +232,59 @@ export function Homepage() {
         <div className="contact-panel relative mx-auto max-w-[1440px] overflow-hidden rounded-[30px] bg-[#172427] px-6 py-12 text-white sm:px-10 sm:py-16 lg:px-16 lg:py-20" data-reveal><div className="contact-glow absolute -right-10 -top-40 size-[380px] rounded-full bg-[#315e4e]/50 blur-[90px]" aria-hidden="true" /><div className="relative grid gap-9 lg:grid-cols-[1fr_auto] lg:items-end"><div className="max-w-2xl"><p className="text-[10px] font-bold uppercase tracking-[.2em] text-[#f0c777]">Let’s build in sync</p><h2 className="mt-4 text-4xl font-semibold leading-tight tracking-[-.045em] sm:text-5xl">Bring your next project<br className="hidden sm:block" /> into clearer focus.</h2><p className="mt-5 max-w-xl text-sm leading-6 text-white/60 sm:text-base sm:leading-7">Get in touch with your workspace administrator for access, or sign in to continue to your team’s construction workspace.</p></div><div className="flex flex-col gap-3 sm:flex-row lg:flex-col"><Link href="/auth/login" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#e9ad47] px-6 text-sm font-bold text-[#172427] transition hover:bg-[#f3c46f]">Open workspace <ArrowRight size={16} /></Link><p className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-white/20 px-6 text-sm font-semibold text-white/75"><Mail size={15} /> Support through your workspace admin</p></div></div></div>
       </section>
 
-      <footer className="border-t border-[#e3e7e1] bg-[#f8f8f5] px-5 py-8 sm:px-8 lg:px-12"><div className="mx-auto flex max-w-[1440px] flex-col gap-7 sm:flex-row sm:items-center sm:justify-between"><Link href="#top" className="flex items-center gap-3"><BrandMark light /><span className="leading-none"><span className="block text-xs font-extrabold tracking-[.13em] text-[#19272b]">BENCHMARK</span><span className="mt-1 block text-[8px] font-semibold tracking-[.22em] text-[#7c8782]">BUILDING SOLUTIONS</span></span></Link><nav className="flex flex-wrap gap-x-6 gap-y-3 text-xs font-semibold text-[#66716c]" aria-label="Footer navigation"><a href="#solutions" className="transition hover:text-[#315e4e]">Solutions</a><a href="#how-it-works" className="transition hover:text-[#315e4e]">How it works</a><a href="#about" className="transition hover:text-[#315e4e]">About us</a><a href="#contact" className="transition hover:text-[#315e4e]">Contact us</a><Link href="/auth/login" className="transition hover:text-[#315e4e]">Sign in</Link></nav><p className="text-[10px] text-[#87918c]">© {new Date().getFullYear()} Benchmark Building Solutions</p></div></footer>
+      <footer className="egotech-home-footer relative overflow-hidden border-t border-white/10 px-5 pb-7 pt-16 text-white sm:px-8 sm:pt-20 lg:px-12">
+        <div className="egotech-footer-orb egotech-footer-orb-one" aria-hidden="true" />
+        <div className="egotech-footer-orb egotech-footer-orb-two" aria-hidden="true" />
+        <div className="relative mx-auto max-w-[1440px]">
+          <div className="grid gap-5 lg:grid-cols-[.72fr_1.28fr] lg:items-end" data-reveal>
+            <div>
+              <p className="egotech-footer-eyebrow">EgoTECHWORLD PVT LTD</p>
+              <h2 className="egotech-footer-title mt-4 text-4xl sm:text-5xl">What EgoTECH <em>does.</em></h2>
+            </div>
+            <p className="max-w-2xl text-sm leading-6 text-white/70 sm:text-base sm:leading-7">From software development to education, EgoTECH covers a broad range of information technology services.</p>
+          </div>
+
+          <div className="mt-9 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            {[
+              { icon: Code2, title: "Custom software", text: "We design and build tailored software solutions, from POS systems and ERP tools to web platforms and mobile apps, built around your business needs.", href: "https://www.egotechworld.com/about.php", link: "Learn more" },
+              { icon: GraduationCap, title: "IT courses and training", text: "EgoTECH offers 20+ free and paid online IT courses covering programming, web development, AI, and career skills for students and professionals across Sri Lanka." },
+              { icon: BriefcaseBusiness, title: "IT job board", text: "We run one of Sri Lanka’s most active IT job boards, connecting tech talent with employers locally and internationally.", href: "https://egotechworld.com/jobs.php", link: "Visit job board" },
+              { icon: Wrench, title: "IT services", text: "We provide website hosting consultation, domain setup, software debugging, database design, and technical support for businesses and individual developers." },
+            ].map(({ icon: Icon, title, text, href, link }, index) => (
+              <article key={title} data-tone={index} data-reveal className="egotech-service-card group rounded-[24px] p-5 transition duration-500 sm:p-6" style={{ transitionDelay: `${index * 75}ms` }}>
+                <span className="egotech-service-icon flex size-12 items-center justify-center rounded-2xl transition duration-300 group-hover:rotate-[-5deg]"><Icon size={21} strokeWidth={1.8} /></span>
+                <h3 className="mt-6 text-base font-semibold tracking-tight">{title}</h3>
+                <p className="mt-2 min-h-[100px] text-xs leading-5">{text}</p>
+                {href && <a href={href} target="_blank" rel="noreferrer" className="group/link mt-4 inline-flex min-h-11 items-center gap-2 text-xs font-bold transition">{link}<ArrowUpRight size={14} className="transition-transform group-hover/link:-translate-y-0.5 group-hover/link:translate-x-0.5" /></a>}
+              </article>
+            ))}
+          </div>
+
+          <div id="egotech-contact" className="egotech-contact-panel relative mt-12 overflow-hidden rounded-[28px] px-6 py-8 text-white sm:px-9 sm:py-10 lg:px-12" data-reveal>
+            <div className="egotech-contact-glow absolute -right-16 -top-40 size-[360px] rounded-full bg-white/35 blur-[90px]" aria-hidden="true" />
+            <div className="relative grid gap-8 lg:grid-cols-[.8fr_1.2fr] lg:items-center">
+              <div><p className="text-[10px] font-bold uppercase tracking-[.2em] text-[#f0c777]">Get in touch</p><h2 className="mt-3 text-2xl font-semibold tracking-tight sm:text-3xl">Have a project in mind?</h2><p className="mt-3 max-w-md text-sm leading-6 text-white/65">Reach out to learn more about EgoTECH software and courses.</p></div>
+              <div className="grid gap-2 sm:grid-cols-3">
+                <a href="tel:+94743126123" className="egotech-contact-link"><Phone size={16} /><span>+94 743 126 123</span></a>
+                <a href="https://wa.me/94743126123" target="_blank" rel="noreferrer" className="egotech-contact-link"><MessageCircle size={16} /><span>WhatsApp us</span><ArrowUpRight size={13} className="ml-auto" /></a>
+                <a href="mailto:contact@egotechworld.com" className="egotech-contact-link sm:col-span-2 lg:col-span-1"><Mail size={16} /><span className="truncate">contact@egotechworld.com</span></a>
+              </div>
+            </div>
+          </div>
+
+          <div className="egotech-footer-bottom mt-10 grid gap-7 border-t pt-8 lg:grid-cols-[1fr_auto] lg:items-start">
+            <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <Link href="#top" className="flex items-center gap-3" aria-label="Benchmark Building Solutions home"><BrandMark light /><span className="leading-none"><span className="block text-xs font-extrabold tracking-[.13em] text-white">BENCHMARK</span><span className="mt-1 block text-[8px] font-semibold tracking-[.22em] text-white/55">BUILDING SOLUTIONS</span></span></Link>
+                <p className="mt-3 text-xs text-white/55">Project management for the people who build.</p>
+              </div>
+              <nav className="flex flex-wrap gap-x-5 gap-y-3 text-xs font-semibold text-white/65" aria-label="Footer navigation"><a href="#about" className="transition hover:text-[#f0c777]">About</a><a href="#solutions" className="transition hover:text-[#f0c777]">Solutions</a><a href="#egotech-contact" className="transition hover:text-[#f0c777]">Contact</a><Link href="/auth/login" className="transition hover:text-[#f0c777]">Sign in</Link></nav>
+            </div>
+            <div className="max-w-xl text-xs leading-5 text-white/55 lg:text-right"><p>EgoTECHWORLD PVT LTD is a registered software development company in Sri Lanka. ROC No: PV00352315.</p><div className="mt-2 flex gap-4 lg:justify-end"><a href="https://www.egotechworld.com/privacy.php" target="_blank" rel="noreferrer" className="font-semibold text-[#f0c777] hover:text-white">Privacy policy <ArrowUpRight size={11} className="inline" /></a><a href="https://www.egotechworld.com/terms.php" target="_blank" rel="noreferrer" className="font-semibold text-[#f0c777] hover:text-white">Terms <ArrowUpRight size={11} className="inline" /></a></div></div>
+          </div>
+          <div className="egotech-footer-copyright mt-7 flex flex-col gap-2 border-t pt-5 text-[10px] sm:flex-row sm:items-center sm:justify-between"><span>© {new Date().getFullYear()} Benchmark Building Solutions. All rights reserved.</span><span>Powered by EgoTECHWORLD PVT LTD</span></div>
+        </div>
+      </footer>
     </main>
   );
 }
